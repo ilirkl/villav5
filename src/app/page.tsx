@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from 'react';
+import { EventContentArg } from '@fullcalendar/common';
 import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import interactionPlugin from '@fullcalendar/interaction';
@@ -72,7 +73,7 @@ export default function Home() {
         }
     }));
 
-    const renderEventContent = (eventInfo: any) => {
+    const renderEventContent = (eventInfo: EventContentArg) => {
         const booking = eventInfo.event.extendedProps;
         return (
             <div className="booking-event-content">
@@ -86,8 +87,8 @@ export default function Home() {
         );
     };
 
-    const handleEventClick = (clickInfo: any) => {
-        const booking = clickInfo.event.extendedProps;
+    const handleEventClick = (clickInfo: { event: { extendedProps: unknown } }) => {
+        const booking = clickInfo.event.extendedProps as Booking;
         setSelectedBooking(booking);
         setIsModalOpen(true);
     };
