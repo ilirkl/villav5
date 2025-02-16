@@ -1,101 +1,148 @@
-import Image from "next/image";
+"use client";
+
+import React, { useEffect, useState } from 'react';
+import FullCalendar from '@fullcalendar/react';
+import dayGridPlugin from '@fullcalendar/daygrid';
+import interactionPlugin from '@fullcalendar/interaction';
+import { supabase } from './supabaseClient';
+import Modal from './components/Modal';
+import BookingDetails from './components/BookingDetails';
+
+interface Booking {
+    id: number;
+    start_date: string;
+    end_date: string;
+    guest_name: string;
+    guest_email: string;
+    guest_phone: string;
+    amount: number;
+    prepayment: number;
+    notes: string;
+}
+
+const formatAmount = (amount: number) => {
+    return new Intl.NumberFormat('en-US', {
+        style: 'currency',
+        currency: 'USD'
+    }).format(amount);
+};
 
 export default function Home() {
-  return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+    const [bookings, setBookings] = useState<Booking[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
+    const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
+    const [isModalOpen, setIsModalOpen] = useState(false);
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+    useEffect(() => {
+        fetchBookings();
+    }, []);
+
+    const fetchBookings = async () => {
+        try {
+            const { data, error } = await supabase
+                .from('bookings')
+                .select('*')
+                .order('start_date', { ascending: true });
+
+            if (error) {
+                throw error;
+            }
+
+            if (data) {
+                console.log('Fetched bookings:', data);
+                setBookings(data);
+            }
+        } catch (error) {
+            console.error('Error fetching bookings:', error);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const calendarEvents = bookings.map(booking => ({
+        id: booking.id.toString(),
+        title: booking.guest_name,
+        start: booking.start_date,
+        end: new Date(new Date(booking.end_date).getTime() + 24 * 60 * 60 * 1000).toISOString().split('T')[0], // Add one day to end date
+        backgroundColor: '#10B981',
+        borderColor: '#10B981',
+        classNames: ['booking-event'],
+        extendedProps: {
+            ...booking
+        }
+    }));
+
+    const renderEventContent = (eventInfo: any) => {
+        const booking = eventInfo.event.extendedProps;
+        return (
+            <div className="booking-event-content">
+                <div className="guest-name">
+                    {booking.guest_name}
+                </div>
+                <div className="booking-amount">
+                    {formatAmount(booking.amount)}
+                </div>
+            </div>
+        );
+    };
+
+    const handleEventClick = (clickInfo: any) => {
+        const booking = clickInfo.event.extendedProps;
+        setSelectedBooking(booking);
+        setIsModalOpen(true);
+    };
+
+    if (isLoading) {
+        return (
+            <div className="flex items-center justify-center min-h-screen">
+                <p className="text-gray-500">Loading calendar...</p>
+            </div>
+        );
+    }
+
+    return (
+        <div className="bg-white rounded-lg shadow p-4">
+            <div className="calendar-container">
+                <FullCalendar
+                    plugins={[dayGridPlugin, interactionPlugin]}
+                    initialView="dayGridMonth"
+                    events={calendarEvents}
+                    eventContent={renderEventContent}
+                    eventClick={handleEventClick}
+                    headerToolbar={{
+                        start: 'title',
+                        center: '',
+                        end: 'prev,next today dayGridMonth,dayGridWeek'
+                    }}
+                    height="auto"
+                    dayMaxEvents={3}
+                    displayEventEnd={true}
+                    eventDisplay="block"
+                    eventOverlap={true}
+                    nextDayThreshold="00:00:00"
+                    firstDay={1}
+                    views={{
+                        dayGridMonth: {
+                            titleFormat: { year: 'numeric', month: 'short' }
+                        },
+                        dayGridWeek: {
+                            titleFormat: { year: 'numeric', month: 'short', day: 'numeric' }
+                        }
+                    }}
+                />
+            </div>
+
+            {/* Booking Details Modal */}
+            <Modal
+                isOpen={isModalOpen}
+                onClose={() => {
+                    setIsModalOpen(false);
+                    setSelectedBooking(null);
+                }}
+                title="Booking Details"
+            >
+                {selectedBooking && <BookingDetails booking={selectedBooking} />}
+            </Modal>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
-  );
+    );
 }

@@ -3,19 +3,175 @@
 @tailwind utilities;
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --foreground-rgb: 0, 0, 0;
+  --background-start-rgb: 214, 219, 220;
+  --background-end-rgb: 255, 255, 255;
 }
 
 body {
-  color: var(--foreground);
-  background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
+  color: rgb(var(--foreground-rgb));
+  background: #f5f5f5;
+}
+
+/* FullCalendar Customization */
+.calendar-container .fc {
+  /* General calendar styles */
+  @apply font-sans;
+}
+
+.calendar-container .fc-toolbar-title {
+  /* Calendar title */
+  @apply text-gray-900 font-bold text-base sm:text-xl;
+}
+
+.calendar-container .fc-toolbar.fc-header-toolbar {
+  @apply mb-4 flex-wrap gap-2;
+}
+
+.calendar-container .fc-toolbar-chunk {
+  @apply flex items-center gap-1;
+}
+
+.calendar-container .fc-button {
+  /* Calendar buttons */
+  @apply bg-white border border-gray-300 text-gray-700 px-2 py-1 text-sm rounded-lg 
+         hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#FF385C] focus:ring-opacity-50
+         disabled:opacity-50 disabled:cursor-not-allowed;
+}
+
+.calendar-container .fc-button-primary {
+  /* Primary buttons */
+  @apply bg-[#FF385C] border-[#FF385C] text-white
+         hover:bg-[#FF385C]/90 hover:border-[#FF385C]/90;
+}
+
+.calendar-container .fc-button-active {
+  /* Active state for buttons */
+  @apply bg-gray-200 border-gray-300 text-gray-900;
+}
+
+.calendar-container .fc-day {
+  /* Calendar days */
+  @apply bg-white border-gray-200;
+}
+
+.calendar-container .fc-day-today {
+  /* Today's date */
+  @apply bg-blue-50;
+}
+
+/* Booking Event Styles */
+.calendar-container .booking-event {
+  margin: 0;
+  border-radius: 4px;
+  position: relative;
+}
+
+.calendar-container .booking-event-content {
+  padding: 0px 4px;
+  min-height: 20px;
+}
+
+.calendar-container .guest-name {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: white;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.calendar-container .booking-amount {
+  font-size: 0.7rem;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+/* Event Container Styles */
+.calendar-container .fc-daygrid-event-harness {
+  margin: 0;
+}
+
+.calendar-container .fc-daygrid-event {
+  margin: 0;
+  padding: 0;
+  position: relative;
+}
+
+.calendar-container .fc-daygrid-day-events {
+  margin: 0;
+  padding: 0;
+  min-height: 0;
+}
+
+.calendar-container .fc-daygrid-body-balanced .fc-daygrid-day-events {
+  position: relative;
+}
+
+.calendar-container .fc-event-main {
+  padding: 0;
+}
+
+.calendar-container .fc-h-event {
+  border: none;
+  padding: 0;
+}
+
+/* Day Number and Headers */
+.calendar-container .fc-daygrid-day-number {
+  @apply text-gray-600 font-medium text-sm;
+}
+
+.calendar-container .fc-col-header-cell {
+  @apply bg-gray-50 py-2;
+}
+
+.calendar-container .fc-col-header-cell-cushion {
+  @apply text-gray-700 font-medium text-sm;
+}
+
+/* More Link and Popover */
+.calendar-container .fc-more-link {
+  @apply text-[#FF385C] font-medium text-sm;
+  margin: 0;
+  padding: 2px 4px;
+}
+
+.calendar-container .fc-popover {
+  @apply bg-white rounded-lg shadow-lg border border-gray-200;
+}
+
+.calendar-container .fc-popover-header {
+  @apply bg-gray-50 px-3 py-2 rounded-t-lg;
+}
+
+/* Mobile Optimizations */
+@media (max-width: 640px) {
+  .calendar-container .fc-header-toolbar {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .calendar-container .fc-toolbar-chunk {
+    display: flex;
+    gap: 0.25rem;
+  }
+
+  .calendar-container .fc-toolbar-title {
+    font-size: 1.1rem;
+  }
+
+  .calendar-container .fc-button {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.875rem;
+  }
+
+  .calendar-container .fc-col-header-cell-cushion {
+    font-size: 0.75rem;
+  }
+
+  .calendar-container .fc-daygrid-day-number {
+    font-size: 0.75rem;
+  }
 }
