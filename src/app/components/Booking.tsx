@@ -26,9 +26,9 @@ const formatAmount = (amount: number) => {
 
 const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric'
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric'
     });
 };
 
@@ -47,14 +47,8 @@ const Booking = () => {
                 .select('*')
                 .order('start_date', { ascending: true });
 
-            if (error) {
-                throw error;
-            }
-
-            if (data) {
-                console.log('Fetched bookings:', data);
-                setBookings(data);
-            }
+            if (error) throw error;
+            setBookings(data || []);
         } catch (error) {
             console.error('Error fetching bookings:', error);
             alert('Error loading bookings. Please refresh the page.');
@@ -68,14 +62,12 @@ const Booking = () => {
     }, [fetchBookings]);
 
     const handleBookingSuccess = async () => {
-        console.log('Booking operation successful, refreshing list...');
         setIsModalOpen(false);
         setSelectedBooking(null);
         await fetchBookings();
     };
 
     const handleEdit = (booking: Booking) => {
-        console.log('Editing booking:', booking);
         setSelectedBooking(booking);
         setModalMode('edit');
         setIsModalOpen(true);
@@ -87,6 +79,23 @@ const Booking = () => {
         setIsModalOpen(true);
     };
 
+    const handleDelete = async (bookingId: number) => {
+        if (!confirm('Are you sure you want to delete this booking?')) return;
+        
+        try {
+            const { error } = await supabase
+                .from('bookings')
+                .delete()
+                .eq('id', bookingId);
+
+            if (error) throw error;
+            await fetchBookings();
+        } catch (error) {
+            console.error('Error deleting booking:', error);
+            alert('Error deleting booking. Please try again.');
+        }
+    };
+
     if (isLoading) {
         return (
             <div className="flex items-center justify-center min-h-screen">
@@ -96,7 +105,7 @@ const Booking = () => {
     }
 
     return (
-        <div className="relative">
+        <div className="max-w-6xl mx-auto px-4 py-8">
             {/* Add Booking Button */}
             <button
                 onClick={handleAdd}
@@ -117,42 +126,74 @@ const Booking = () => {
                     bookings.map((booking) => (
                         <div 
                             key={booking.id}
-                            className="border border-gray-200 rounded-lg p-4 hover:border-[#FF385C] transition-colors bg-white"
+                            className="border border-gray-200 rounded-xl p-6 hover:border-[#FF385C]/30 transition-colors bg-white shadow-sm"
                         >
-                            <div className="flex flex-col sm:flex-row sm:items-center justify-between">
-                                <div className="flex-grow">
-                                    <div className="flex items-center gap-2 mb-2">
-                                        <span className="text-gray-600 text-sm">
-                                            {formatDate(booking.start_date)} - {formatDate(booking.end_date)}
-                                        </span>
+                            <div className="flex flex-col sm:flex-row justify-between gap-4">
+                                {/* Left Section */}
+                                <div className="flex-1 space-y-3">
+                                    <div className="space-y-1">
+                                        <h3 className="text-xl font-semibold text-gray-800">
+                                            {booking.guest_name}
+                                        </h3>
+                                        {booking.notes && (
+                                            <p className="text-gray-600 text-sm italic">
+                                                "{booking.notes}"
+                                            </p>
+                                        )}
                                     </div>
-                                    <h4 className="font-medium text-lg">{booking.guest_name}</h4>
-                                    <div className="text-sm text-gray-600">
-                                        <p>{booking.guest_email}</p>
-                                        <p>{booking.guest_phone}</p>
+
+                                    <div className="flex flex-wrap items-center gap-2 text-sm">
+                                       
+                                        <div className="flex items-center gap-2 text-gray-500">
+                                            <span className="hidden sm:inline">•</span>
+                                            <a href={`tel:${booking.guest_phone}`} className="hover:text-[#FF385C] transition-colors">
+                                                {booking.guest_phone}
+                                            </a>
+                                            <span>•</span>
+                                            <a href={`mailto:${booking.guest_email}`} className="hover:text-[#FF385C] transition-colors">
+                                                {booking.guest_email}
+                                            </a>
+                                        </div>
+
+                                        <div className="bg-gray-100 px-3 py-1 rounded-full text-gray-600">
+                                            {formatDate(booking.start_date)} – {formatDate(booking.end_date)}
+                                        </div>
                                     </div>
-                                    {booking.notes && (
-                                        <p className="mt-2 text-gray-600 text-sm">{booking.notes}</p>
-                                    )}
                                 </div>
-                                <div className="mt-2 sm:mt-0 flex flex-col items-end gap-1">
-                                    <span className="font-medium text-[#FF385C] text-lg">
-                                        {formatAmount(booking.amount)}
-                                    </span>
-                                    {booking.prepayment > 0 && (
-                                        <span className="text-sm text-gray-600">
-                                            Prepaid: {formatAmount(booking.prepayment)}
-                                        </span>
-                                    )}
-                                    <button
-                                        onClick={() => handleEdit(booking)}
-                                        className="p-2 text-gray-600 hover:text-[#FF385C] transition-colors"
-                                        title="Edit booking"
-                                    >
-                                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-                                        </svg>
-                                    </button>
+
+                                {/* Right Section */}
+                                <div className="sm:text-right flex sm:flex-col items-center sm:items-end justify-between gap-4">
+                                    <div className="space-y-2">
+                                        <p className="text-2xl font-bold text-[#FF385C]">
+                                            {formatAmount(booking.amount)}
+                                        </p>
+                                        {booking.prepayment > 0 && (
+                                            <p className="text-sm text-gray-600">
+                                                Prepaid: {formatAmount(booking.prepayment)}
+                                            </p>
+                                        )}
+                                    </div>
+
+                                    <div className="flex gap-2">
+                                        <button
+                                            onClick={() => handleEdit(booking)}
+                                            className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                                            title="Edit booking"
+                                        >
+                                            <svg className="w-5 h-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                                            </svg>
+                                        </button>
+                                        <button
+                                            onClick={() => handleDelete(booking.id)}
+                                            className="p-2 hover:bg-red-50 rounded-full transition-colors"
+                                            title="Delete booking"
+                                        >
+                                            <svg className="w-5 h-5 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                            </svg>
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         </div>

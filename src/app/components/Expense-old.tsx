@@ -14,11 +14,18 @@ interface Expense {
 }
 
 const formatAmount = (amount: number) => {
-    return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount);
+    return new Intl.NumberFormat('en-US', {
+        style: 'currency',
+        currency: 'USD'
+    }).format(amount);
 };
 
 const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+    return new Date(dateString).toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+    });
 };
 
 const Expense = () => {
@@ -27,21 +34,53 @@ const Expense = () => {
     const [isLoading, setIsLoading] = useState(true);
     const [selectedExpense, setSelectedExpense] = useState<Expense | null>(null);
     const [modalMode, setModalMode] = useState<'create' | 'edit'>('create');
+    const [startDate, setStartDate] = useState<string>('');
+    const [endDate, setEndDate] = useState<string>('');
+    const [selectedCategory, setSelectedCategory] = useState<string>('all');
+    const [categories, setCategories] = useState<string[]>([]);
+
+    const fetchCategories = async () => {
+        try {
+            const { data, error } = await supabase
+                .from('expenses')
+                .select('category')
+                .not('category', 'is', null)
+                .order('category', { ascending: true });
+
+            if (error) throw error;
+
+            const uniqueCategories = Array.from(new Set(data.map(item => item.category)));
+            setCategories(uniqueCategories);
+        } catch (error) {
+            console.error('Error fetching categories:', error);
+        }
+    };
 
     const fetchExpenses = useCallback(async () => {
         setIsLoading(true);
         try {
-            const { data, error } = await supabase
+            let query = supabase
                 .from('expenses')
                 .select('*')
                 .order('date', { ascending: false });
 
-            if (error) {
-                throw error;
+            // Apply date filters
+            if (startDate) {
+                query = query.gte('date', startDate);
+            }
+            if (endDate) {
+                query = query.lte('date', endDate);
+            }
+            // Apply category filter
+            if (selectedCategory && selectedCategory !== 'all') {
+                query = query.eq('category', selectedCategory);
             }
 
+            const { data, error } = await query;
+
+            if (error) throw error;
+
             if (data) {
-                console.log('Fetched expenses:', data);
                 setExpenses(data);
             }
         } catch (error) {
@@ -50,9 +89,10 @@ const Expense = () => {
         } finally {
             setIsLoading(false);
         }
-    }, []);
+    }, [startDate, endDate, selectedCategory]);
 
     useEffect(() => {
+        fetchCategories();
         fetchExpenses();
     }, [fetchExpenses]);
 
@@ -61,6 +101,7 @@ const Expense = () => {
         setIsModalOpen(false);
         setSelectedExpense(null);
         await fetchExpenses();
+        await fetchCategories(); // Refetch categories to include any new ones
     };
 
     const handleEdit = (expense: Expense) => {
@@ -76,6 +117,9 @@ const Expense = () => {
         setIsModalOpen(true);
     };
 
+    // Calculate total expenses
+    const totalExpenses = expenses.reduce((total, expense) => total + expense.amount, 0);
+
     if (isLoading) {
         return (
             <div className="flex items-center justify-center min-h-screen">
@@ -86,45 +130,67 @@ const Expense = () => {
 
     return (
         <div className="relative">
-            {/* Add Expense Button */}
-            <button
-                onClick={handleAdd}
-                className="fixed bottom-20 right-4 sm:right-8 z-30 w-14 h-14 bg-[#FF385C] rounded-full flex items-center justify-center shadow-lg hover:bg-[#FF385C]/90 transition-colors"
-            >
-                <svg className="w-8 h-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                </svg>
-            </button>
+            {/* Filter UI */}
+            <div className="mb-6 flex flex-wrap gap-4">
+                <div className="flex items-center gap-2">
+                    <label className="text-sm">Start Date:</label>
+                    <input
+                        type="date"
+                        value={startDate}
+                        onChange={(e) => setStartDate(e.target.value)}
+                        className="border rounded p-2"
+                    />
+                </div>
+                <div className="flex items-center gap-2">
+                    <label className="text-sm">End Date:</label>
+                    <input
+                        type="date"
+                        value={endDate}
+                        onChange={(e) => setEndDate(e.target.value)}
+                        className="border rounded p-2"
+                    />
+                </div>
+                <div className="flex items-center gap-2">
+                    <label className="text-sm">Category:</label>
+                    <select
+                        value={selectedCategory}
+                        onChange={(e) => setSelectedCategory(e.target.value)}
+                        className="border rounded p-2"
+                    >
+                        <option value="all">All Categories</option>
+                        {categories.map((category) => (
+                            <option key={category} value={category}>
+                                {category}
+                            </option>
+                        ))}
+                    </select>
+                </div>
+                <button
+                    onClick={handleAdd}
+                    className="fixed bottom-20 right-4 sm:right-8 z-30 w-14 h-14 bg-[#FF385C] rounded-full flex items-center justify-center shadow-lg hover:bg-[#FF385C]/90 transition-colors"
+                >
+                    <svg className="w-8 h-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                    </svg>
+                </button>
+            </div>
 
             {/* Expenses List */}
-            <div className="space-y-4">
+            <div className="grid grid-cols-1 gap-4">
                 {expenses.length === 0 ? (
-                    <div className="text-center py-8">
-                        <p className="text-gray-500">No expenses found. Add your first expense!</p>
-                    </div>
+                    <p className="text-gray-500">No expenses found.</p>
                 ) : (
                     expenses.map((expense) => (
-                        <div
-                            key={expense.id}
-                            className="border border-gray-200 rounded-lg p-4 hover:border-[#FF385C] transition-colors bg-white"
-                        >
-                            <div className="flex flex-col sm:flex-row sm:items-center justify-between">
-                                <div className="flex-grow">
-                                    <div className="flex items-center gap-2 mb-2">
-                                        <span className="text-gray-600 text-sm">
-                                            {formatDate(expense.date)}
-                                        </span>
-                                        <span className="px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
-                                            {expense.category}
-                                        </span>
-                                    </div>
-                                    <p className="text-gray-600">{expense.description}</p>
-                                </div>
-                                <div className="mt-2 sm:mt-0 flex items-center gap-4">
-                                    <span className="font-medium text-[#FF385C] text-lg">
-                                        {formatAmount(expense.amount)}
-                                    </span>
-                                    <button
+                        <div key={expense.id} className="border rounded-lg p-4 shadow-md flex justify-between items-center">
+                            <div>
+                                <p className="text-gray-600 text-sm">{formatDate(expense.date)}</p>
+                                <p className="font-bold">{expense.description}</p>
+                                <p className="px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">{expense.category}</p>
+
+                            </div>
+                            <div className="flex items-center">
+                                <p className="font-bold">{formatAmount(expense.amount)}</p>
+                                <button
                                         onClick={() => handleEdit(expense)}
                                         className="p-2 text-gray-600 hover:text-[#FF385C] transition-colors"
                                         title="Edit expense"
@@ -133,15 +199,19 @@ const Expense = () => {
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
                                         </svg>
                                     </button>
-                                </div>
                             </div>
                         </div>
                     ))
                 )}
             </div>
 
-            {/* Add/Edit Expense Modal */}
-            <Modal
+            {/* Total Expenses */}
+            <div className="mt-4 font-bold">
+                Total Expenses: {formatAmount(totalExpenses)}
+            </div>
+
+              {/* Add/Edit Expense Modal */}
+              <Modal
                 isOpen={isModalOpen}
                 onClose={() => {
                     setIsModalOpen(false);
