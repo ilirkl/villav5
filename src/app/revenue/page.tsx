@@ -207,7 +207,7 @@ export default function RevenuePage() {
             <thead>
               <tr className="border-b">
                 <th className="text-right py-3 px-4">Parapagim</th>
-                <th className="text-right py-3 px-4">Per t'Paguar</th>
+                <th className="text-right py-3 px-4">Per tPaguar</th>
                 <th className="text-right py-3 px-4">Total</th>
               </tr>
             </thead>
