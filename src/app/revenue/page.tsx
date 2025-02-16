@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { supabase } from '../supabaseClient';
 import { Booking } from '../components/Booking';
 
@@ -16,6 +16,13 @@ interface FinancialData {
   }>;
 }
 
+interface Expense {
+  id: string;
+  amount: number;
+  date: string;
+  // Add other properties as needed
+}
+
 const formatCurrency = (amount: number) => {
   return new Intl.NumberFormat('en-US', {
     style: 'currency',
@@ -29,11 +36,7 @@ export default function RevenuePage() {
   const [startDate, setStartDate] = useState<string>('');
   const [endDate, setEndDate] = useState<string>('');
 
-  useEffect(() => {
-    fetchFinancialData();
-  }, [startDate, endDate]);
-
-  const fetchFinancialData = async () => {
+  const fetchFinancialData = useCallback(async () => {
     try {
       const { data: bookings, error: bookingsError } = await supabase
         .from('bookings')
@@ -73,11 +76,15 @@ export default function RevenuePage() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [startDate, endDate]);
+
+  useEffect(() => {
+    fetchFinancialData();
+  }, [fetchFinancialData, startDate, endDate]);
 
   const processFinancialData = (
     bookings: Booking[],
-    expenses: any[],
+    expenses: Expense[],
     startDate: string,
     endDate: string
   ): FinancialData => {
@@ -93,7 +100,7 @@ export default function RevenuePage() {
 
     // Generate all months in range
     const monthsInRange: Record<string, { prepaid: number; paid: number }> = {};
-    let currentDate = new Date(start);
+    const currentDate = new Date(start);
     currentDate.setDate(1);
 
     while (currentDate <= end) {
