@@ -22,7 +22,7 @@ interface BookingDetailsProps {
 const formatAmount = (amount: number) => {
     return new Intl.NumberFormat('en-US', {
         style: 'currency',
-        currency: 'USD'
+        currency: 'EUR'
     }).format(amount);
 };
 
@@ -62,22 +62,22 @@ const BookingDetails = ({ booking }: BookingDetailsProps) => {
 
             <div className="border-t border-gray-200 pt-4">
                 <div className="flex justify-between items-center mb-2">
-                    <span className="text-sm font-medium text-gray-500">Total Amount</span>
+                    <span className="text-sm font-medium text-gray-500">Total </span>
                     <span className="text-sm font-medium text-[#FF385C]">{formatAmount(booking.amount)}</span>
                 </div>
                 <div className="flex justify-between items-center mb-2">
-                    <span className="text-sm font-medium text-gray-500">Prepayment</span>
+                    <span className="text-sm font-medium text-gray-500">Parapagim</span>
                     <span className="text-sm text-gray-900">{formatAmount(booking.prepayment)}</span>
                 </div>
                 <div className="flex justify-between items-center">
-                    <span className="text-sm font-medium text-gray-500">Remaining</span>
+                    <span className="text-sm font-medium text-gray-500">Per tu Paguar</span>
                     <span className="text-sm text-gray-900">{formatAmount(remainingAmount)}</span>
                 </div>
             </div>
 
             {booking.notes && (
                 <div className="border-t border-gray-200 pt-4">
-                    <h4 className="text-sm font-medium text-gray-500 mb-2">Notes</h4>
+                    <h4 className="text-sm font-medium text-gray-500 mb-2">Shenime</h4>
                     <p className="text-sm text-gray-600">{booking.notes}</p>
                 </div>
             )}

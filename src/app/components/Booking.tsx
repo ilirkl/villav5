@@ -20,7 +20,7 @@ export interface Booking {
 const formatAmount = (amount: number) => {
     return new Intl.NumberFormat('en-US', {
         style: 'currency',
-        currency: 'USD'
+        currency: 'EUR'
     }).format(amount);
 };
 
@@ -169,7 +169,7 @@ const Booking = () => {
                                         </p>
                                         {booking.prepayment > 0 && (
                                             <p className="text-sm text-gray-600">
-                                                Prepaid: {formatAmount(booking.prepayment)}
+                                                Parapagim: {formatAmount(booking.prepayment)}
                                             </p>
                                         )}
                                     </div>
@@ -208,7 +208,7 @@ const Booking = () => {
                     setIsModalOpen(false);
                     setSelectedBooking(null);
                 }}
-                title={modalMode === 'edit' ? 'Edit Booking' : 'Add New Booking'}
+                title={modalMode === 'edit' ? 'Ndrysho Rezervim' : 'Shto Rezervim'}
             >
                 <BookingForm
                     mode={modalMode}

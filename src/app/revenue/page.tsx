@@ -26,7 +26,7 @@ interface Expense {
 const formatCurrency = (amount: number) => {
   return new Intl.NumberFormat('en-US', {
     style: 'currency',
-    currency: 'USD'
+    currency: 'EUR'
   }).format(amount);
 };
 
@@ -152,7 +152,7 @@ export default function RevenuePage() {
       {/* Date Filter Inputs */}
       <div className="mb-4 flex flex-wrap gap-2">
         <div className="flex items-center">
-          <label className="mr-2">Start Date:</label>
+          <label className="mr-2">Nga:</label>
           <input
             type="date"
             value={startDate}
@@ -161,7 +161,7 @@ export default function RevenuePage() {
           />
         </div>
         <div className="flex items-center">
-          <label className="mr-2">End Date:</label>
+          <label className="mr-2">Deri:</label>
           <input
             type="date"
             value={endDate}
@@ -174,25 +174,25 @@ export default function RevenuePage() {
       {/* Key Metrics */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         <div className="bg-white p-4 rounded-lg shadow">
-          <h3 className="text-sm font-medium text-gray-500">Net Profit</h3>
+          <h3 className="text-sm font-medium text-gray-500">Net Profiti</h3>
           <p className="text-2xl font-semibold text-green-600">
             {formatCurrency(financialData?.netProfit || 0)}
           </p>
         </div>
         <div className="bg-white p-4 rounded-lg shadow">
-          <h3 className="text-sm font-medium text-gray-500">Total Prepaid</h3>
+          <h3 className="text-sm font-medium text-gray-500">Total Parapagim</h3>
           <p className="text-2xl font-semibold text-blue-600">
             {formatCurrency(financialData?.totalPrepaid || 0)}
           </p>
         </div>
         <div className="bg-white p-4 rounded-lg shadow">
-          <h3 className="text-sm font-medium text-gray-500">Total Paid</h3>
+          <h3 className="text-sm font-medium text-gray-500">Total Paguar</h3>
           <p className="text-2xl font-semibold text-purple-600">
             {formatCurrency(financialData?.totalPaid || 0)}
           </p>
         </div>
         <div className="bg-white p-4 rounded-lg shadow">
-          <h3 className="text-sm font-medium text-gray-500">Total Expenses</h3>
+          <h3 className="text-sm font-medium text-gray-500">Total Shpenzime</h3>
           <p className="text-2xl font-semibold text-red-600">
             {formatCurrency(financialData?.totalExpenses || 0)}
           </p>
@@ -201,13 +201,13 @@ export default function RevenuePage() {
 
       {/* Monthly Cash Flow */}
       <div className="bg-white rounded-lg shadow p-6">
-        <h2 className="text-xl font-semibold mb-4">Monthly Cash Flow</h2>
+        <h2 className="text-xl font-semibold mb-4">Kesh-Flow per periudhen</h2>
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
               <tr className="border-b">
-                <th className="text-right py-3 px-4">Prepaid</th>
-                <th className="text-right py-3 px-4">To Pay</th>
+                <th className="text-right py-3 px-4">Parapagim</th>
+                <th className="text-right py-3 px-4">Per t'Paguar</th>
                 <th className="text-right py-3 px-4">Total</th>
               </tr>
             </thead>

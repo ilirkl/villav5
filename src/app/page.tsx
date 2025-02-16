@@ -115,7 +115,8 @@ export default function Home() {
                     firstDay={1}
                     views={{
                         dayGridMonth: {
-                            titleFormat: { year: 'numeric', month: 'short' }
+                            titleFormat: { year: 'numeric', month: 'short' },
+                            fixedWeekCount: false,
                         },
                         dayGridWeek: {
                             titleFormat: { year: 'numeric', month: 'short', day: 'numeric' }
@@ -131,7 +132,7 @@ export default function Home() {
                     setIsModalOpen(false);
                     setSelectedBooking(null);
                 }}
-                title="Booking Details"
+                title="Detaje"
             >
                 {selectedBooking && <BookingDetails booking={selectedBooking} />}
             </Modal>

@@ -16,7 +16,7 @@ interface Expense {
 const formatAmount = (amount: number) => {
     return new Intl.NumberFormat('en-US', {
         style: 'currency',
-        currency: 'USD'
+        currency: 'EUR'
     }).format(amount);
 };
 
@@ -146,51 +146,47 @@ const Expense = () => {
     }
 
     return (
-        <div className="relative">
+        <div className="relative pl-0">
             {/* Filter UI */}
-            <div className="mb-6 flex flex-wrap gap-4">
-                <div className="flex items-center gap-2">
-                    <label className="text-sm">Start Date:</label>
-                    <input
-                        type="date"
-                        value={startDate}
-                        onChange={(e) => setStartDate(e.target.value)}
-                        className="border rounded p-2"
-                    />
-                </div>
-                <div className="flex items-center gap-2">
-                    <label className="text-sm">End Date:</label>
-                    <input
-                        type="date"
-                        value={endDate}
-                        onChange={(e) => setEndDate(e.target.value)}
-                        className="border rounded p-2"
-                    />
-                </div>
-                <div className="flex items-center gap-2">
-                    <label className="text-sm">Category:</label>
-                    <select
-                        value={selectedCategory}
-                        onChange={(e) => setSelectedCategory(e.target.value)}
-                        className="border rounded p-2"
-                    >
-                        <option value="all">All Categories</option>
-                        {categories.map((category) => (
-                            <option key={category} value={category}>
-                                {category}
-                            </option>
-                        ))}
-                    </select>
-                </div>
-                <button
-                    onClick={handleAdd}
-                    className="fixed bottom-20 right-4 sm:right-8 z-30 w-14 h-14 bg-[#FF385C] rounded-full flex items-center justify-center shadow-lg hover:bg-[#FF385C]/90 transition-colors"
-                >
-                    <svg className="w-8 h-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                    </svg>
-                </button>
-            </div>
+            <div className="pl-0">
+    {/* Filter UI */}
+    <div className="mb-6 flex flex-wrap gap-4 pl-0">
+        <div className="flex items-center gap-2">
+            <input
+                type="date"
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
+                className="border rounded p-2"
+            />
+            <input
+                type="date"
+                value={endDate}
+                onChange={(e) => setEndDate(e.target.value)}
+                className="border rounded p-2"
+            />
+            <select
+                value={selectedCategory}
+                onChange={(e) => setSelectedCategory(e.target.value)}
+                className="border rounded p-2"
+            >
+                <option value="all">Gjitha</option>
+                {categories.map((category) => (
+                    <option key={category} value={category}>
+                        {category}
+                    </option>
+                ))}
+            </select>
+        </div>
+        <button
+            onClick={handleAdd}
+            className="fixed bottom-20 right-4 sm:right-8 z-30 w-14 h-14 bg-[#FF385C] rounded-full flex items-center justify-center shadow-lg hover:bg-[#FF385C]/90 transition-colors"
+        >
+            <svg className="w-8 h-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+            </svg>
+        </button>
+    </div>
+</div>
 
             {/* Expenses List */}
             <div className="grid grid-cols-1 gap-4">
@@ -232,7 +228,7 @@ const Expense = () => {
 
             {/* Total Expenses */}
             <div className="mt-4 font-bold">
-                Total Expenses: {formatAmount(totalExpenses)}
+                Total Shpenzime: {formatAmount(totalExpenses)}
             </div>
 
             {/* Add/Edit Expense Modal */}
@@ -242,7 +238,7 @@ const Expense = () => {
                     setIsModalOpen(false);
                     setSelectedExpense(null);
                 }}
-                title={modalMode === 'edit' ? 'Edit Expense' : 'Add New Expense'}
+                title={modalMode === 'edit' ? 'Ndrysho' : 'Shto Shpenzim'}
             >
                 <ExpenseForm
                     mode={modalMode}
