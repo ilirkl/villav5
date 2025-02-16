@@ -21,12 +21,6 @@ interface Booking {
     notes: string;
 }
 
-const formatAmount = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
-        style: 'currency',
-        currency: 'USD'
-    }).format(amount);
-};
 
 export default function Home() {
     const [bookings, setBookings] = useState<Booking[]>([]);
@@ -80,10 +74,7 @@ export default function Home() {
                 <div className="guest-name">
                     {booking.guest_name}
                 </div>
-                <div className="booking-amount">
-                    {formatAmount(booking.amount)}
                 </div>
-            </div>
         );
     };
 

@@ -63,13 +63,13 @@ body {
 /* Booking Event Styles */
 .calendar-container .booking-event {
   margin: 0;
-  border-radius: 4px;
+  border-radius: 8px;
   position: relative;
 }
 
 .calendar-container .booking-event-content {
   padding: 0px 4px;
-  min-height: 20px;
+  min-height: 10px;
 }
 
 .calendar-container .guest-name {
