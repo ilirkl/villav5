@@ -137,7 +137,7 @@ const Booking = () => {
                                         </h3>
                                         {booking.notes && (
                                             <p className="text-gray-600 text-sm italic">
-                                                "{booking.notes}"
+                                                &quot;{booking.notes}&quot;
                                             </p>
                                         )}
                                     </div>

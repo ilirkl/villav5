@@ -3,6 +3,7 @@ import type { Metadata } from 'next'
 import Header from './components/Header'
 import Navbar from './components/Navbar'
 
+
 export const metadata: Metadata = {
   title: 'Villa V5',
   description: 'Villa V5 Management System',
