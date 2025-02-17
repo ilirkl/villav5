@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../supabaseClient';
 import { SeasonalPricing } from '../types';
+import { Session } from '@supabase/supabase-js';
 
 const SeasonalPricingSettings = () => {
     const [seasonalPricings, setSeasonalPricings] = useState<SeasonalPricing[]>([]);
@@ -18,7 +19,7 @@ const SeasonalPricingSettings = () => {
         sunday_price: 0
     });
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const [session, setSession] = useState<any>(null);
+    const [session, setSession] = useState<Session | null>(null);
 
     useEffect(() => {
         // Check current session

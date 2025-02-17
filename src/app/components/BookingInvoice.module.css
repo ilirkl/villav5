@@ -4,17 +4,17 @@
         size: A4;
     }
 
-    body * {
+    .printRoot * {
         visibility: hidden;
     }
 
     .invoice,
     .invoice * {
-        visibility: visible;
+        visibility: visible !important;
     }
 
     .invoice {
-        position: absolute;
+        position: fixed;
         left: 0;
         top: 0;
         width: 100%;

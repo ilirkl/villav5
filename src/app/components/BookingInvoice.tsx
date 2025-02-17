@@ -26,7 +26,7 @@ const BookingInvoice = ({ booking }: BookingInvoiceProps) => {
     };
 
     return (
-        <div>
+        <div className={styles.printRoot}>
             <button
                 onClick={handlePrint}
                 className={`${styles.printButton} ${styles.noPrint}`}
