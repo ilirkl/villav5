@@ -214,6 +214,7 @@ export default function RevenuePage() {
             <tbody>
               {financialData?.monthlyCashFlow.map((monthData) => (
                 <tr key={monthData.month} className="border-b hover:bg-gray-50">
+                  <td className="text-left py-3 px-4">{monthData.month}</td>
                   <td className="text-right py-3 px-4">{formatCurrency(monthData.prepaid)}</td>
                   <td className="text-right py-3 px-4">{formatCurrency(monthData.paid)}</td>
                   <td className="text-right py-3 px-4 font-medium">
