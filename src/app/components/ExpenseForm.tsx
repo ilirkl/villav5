@@ -23,7 +23,7 @@ const EXPENSE_CATEGORIES = [
     'Mirembajtje',
     'Komunalite',
     'Pastrim',
-    'Furnizime',
+    'Furnizim',
     'Stafi',
     'Sigurimi',
     'Marketing',
