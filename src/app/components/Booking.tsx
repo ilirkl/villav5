@@ -4,6 +4,7 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { supabase } from '../supabaseClient';
 import Modal from './Modal';
 import BookingForm from './BookingForm';
+import BookingInvoice from './BookingInvoice';
 
 export interface Booking {
     id: number;
@@ -35,6 +36,7 @@ const formatDate = (dateString: string) => {
 const Booking = () => {
     const [bookings, setBookings] = useState<Booking[]>([]);
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [isInvoiceModalOpen, setIsInvoiceModalOpen] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
     const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
     const [modalMode, setModalMode] = useState<'create' | 'edit'>('create');
@@ -96,6 +98,11 @@ const Booking = () => {
         }
     };
 
+    const handleInvoice = (booking: Booking) => {
+        setSelectedBooking(booking);
+        setIsInvoiceModalOpen(true);
+    };
+
     if (isLoading) {
         return (
             <div className="flex items-center justify-center min-h-screen">
@@ -137,7 +144,7 @@ const Booking = () => {
                                         </h3>
                                         {booking.notes && (
                                             <p className="text-gray-600 text-sm italic">
-                                                &quot;{booking.notes}&quot;
+                                                "{booking.notes}"
                                             </p>
                                         )}
                                     </div>
@@ -175,6 +182,15 @@ const Booking = () => {
                                     </div>
 
                                     <div className="flex gap-2">
+                                        <button
+                                            onClick={() => handleInvoice(booking)}
+                                            className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                                            title="Generate Invoice"
+                                        >
+                                            <svg className="w-5 h-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                            </svg>
+                                        </button>
                                         <button
                                             onClick={() => handleEdit(booking)}
                                             className="p-2 hover:bg-gray-100 rounded-full transition-colors"
@@ -219,6 +235,18 @@ const Booking = () => {
                         setSelectedBooking(null);
                     }}
                 />
+            </Modal>
+
+            {/* Invoice Modal */}
+            <Modal
+                isOpen={isInvoiceModalOpen}
+                onClose={() => {
+                    setIsInvoiceModalOpen(false);
+                    setSelectedBooking(null);
+                }}
+                title="Booking Invoice"
+            >
+                {selectedBooking && <BookingInvoice booking={selectedBooking} />}
             </Modal>
         </div>
     );
