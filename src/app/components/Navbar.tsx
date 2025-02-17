@@ -7,15 +7,6 @@ import { supabase } from '../supabaseClient';
 const Navbar = () => {
   const pathname = usePathname();
 
-  const handleSignOut = async () => {
-    try {
-      await supabase.auth.signOut();
-      window.location.href = '/login';
-    } catch (error) {
-      console.error('Error signing out:', error);
-    }
-  };
-
   return (
     <>
       {/* Mobile Navigation - Bottom */}
@@ -66,18 +57,6 @@ const Navbar = () => {
               <span className="text-xs mt-1">Settings</span>
             </div>
           </Link>
-
-          <button
-            onClick={handleSignOut}
-            className="flex flex-col items-center justify-center w-full"
-          >
-            <div className="flex flex-col items-center justify-center text-gray-500">
-              <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-              </svg>
-              <span className="text-xs mt-1">Sign Out</span>
-            </div>
-          </button>
         </div>
       </nav>
     </>

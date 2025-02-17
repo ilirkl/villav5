@@ -20,6 +20,8 @@ const SeasonalPricingSettings = () => {
     });
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [session, setSession] = useState<Session | null>(null);
+    const [editMode, setEditMode] = useState(false);
+    const [selectedPricing, setSelectedPricing] = useState<SeasonalPricing | null>(null);
 
     useEffect(() => {
         // Check current session
@@ -58,6 +60,28 @@ const SeasonalPricingSettings = () => {
         }
     };
 
+    const handleEdit = (pricing: SeasonalPricing) => {
+        setEditMode(true);
+        setSelectedPricing(pricing);
+        setNewPricing({
+            start_date: pricing.start_date,
+            end_date: pricing.end_date,
+            monday_price: pricing.monday_price,
+            tuesday_price: pricing.tuesday_price,
+            wednesday_price: pricing.wednesday_price,
+            thursday_price: pricing.thursday_price,
+            friday_price: pricing.friday_price,
+            saturday_price: pricing.saturday_price,
+            sunday_price: pricing.sunday_price
+        });
+    };
+
+    const handleCancel = () => {
+        setEditMode(false);
+        setSelectedPricing(null);
+        resetForm();
+    };
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!validateForm()) return;
@@ -68,13 +92,25 @@ const SeasonalPricingSettings = () => {
 
         setIsSubmitting(true);
         try {
-            const { error } = await supabase
-                .from('seasonal_pricing')
-                .insert([newPricing]);
+            if (editMode && selectedPricing) {
+                const { error } = await supabase
+                    .from('seasonal_pricing')
+                    .update(newPricing)
+                    .eq('id', selectedPricing.id);
 
-            if (error) throw error;
+                if (error) throw error;
+                alert('Seasonal pricing updated successfully');
+                setEditMode(false);
+                setSelectedPricing(null);
+            } else {
+                const { error } = await supabase
+                    .from('seasonal_pricing')
+                    .insert([newPricing]);
 
-            alert('Seasonal pricing added successfully');
+                if (error) throw error;
+                alert('Seasonal pricing added successfully');
+            }
+            
             fetchSeasonalPricings();
             resetForm();
         } catch (error) {
@@ -94,6 +130,29 @@ const SeasonalPricingSettings = () => {
             alert('End date must be after start date');
             return false;
         }
+
+        // Check for date overlaps with existing pricing periods
+        const newStart = new Date(newPricing.start_date);
+        const newEnd = new Date(newPricing.end_date);
+        
+        const hasOverlap = seasonalPricings.some(pricing => {
+            // Skip checking against the current pricing being edited
+            if (editMode && selectedPricing && pricing.id === selectedPricing.id) {
+                return false;
+            }
+            
+            const existingStart = new Date(pricing.start_date);
+            const existingEnd = new Date(pricing.end_date);
+
+            // Check if the new period overlaps with an existing period
+            return (newStart <= existingEnd && newEnd >= existingStart);
+        });
+
+        if (hasOverlap) {
+            alert('The selected dates overlap with an existing pricing period. Please choose different dates.');
+            return false;
+        }
+
         const prices = [
             newPricing.monday_price,
             newPricing.tuesday_price,
@@ -200,13 +259,24 @@ const SeasonalPricingSettings = () => {
                     ))}
                 </div>
 
-                <button
-                    type="submit"
-                    disabled={isSubmitting}
-                    className="w-full px-6 py-3 bg-[#FF385C] text-white rounded-lg hover:bg-[#FF385C]/90 transition-colors disabled:opacity-50"
-                >
-                    {isSubmitting ? 'Adding...' : 'Add Seasonal Pricing'}
-                </button>
+                <div className="flex gap-3">
+                    <button
+                        type="submit"
+                        disabled={isSubmitting}
+                        className="flex-1 px-6 py-3 bg-[#FF385C] text-white rounded-lg hover:bg-[#FF385C]/90 transition-colors disabled:opacity-50"
+                    >
+                        {isSubmitting ? (editMode ? 'Updating...' : 'Adding...') : (editMode ? 'Update Seasonal Pricing' : 'Add Seasonal Pricing')}
+                    </button>
+                    {editMode && (
+                        <button
+                            type="button"
+                            onClick={handleCancel}
+                            className="flex-1 px-6 py-3 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+                        >
+                            Cancel
+                        </button>
+                    )}
+                </div>
             </form>
 
             <div className="mt-8">
@@ -220,14 +290,24 @@ const SeasonalPricingSettings = () => {
                                         {new Date(pricing.start_date).toLocaleDateString()} - {new Date(pricing.end_date).toLocaleDateString()}
                                     </p>
                                 </div>
-                                <button
-                                    onClick={() => handleDelete(pricing.id)}
-                                    className="text-gray-500 hover:text-red-600 transition-colors"
-                                >
-                                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                    </svg>
-                                </button>
+                                <div className="flex gap-2">
+                                    <button
+                                        onClick={() => handleEdit(pricing)}
+                                        className="text-gray-500 hover:text-[#FF385C] transition-colors"
+                                    >
+                                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                                        </svg>
+                                    </button>
+                                    <button
+                                        onClick={() => handleDelete(pricing.id)}
+                                        className="text-gray-500 hover:text-red-600 transition-colors"
+                                    >
+                                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                        </svg>
+                                    </button>
+                                </div>
                             </div>
                             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 text-sm">
                                 <p>Monday: €{pricing.monday_price}</p>

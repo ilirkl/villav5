@@ -5,7 +5,7 @@ import { supabase } from '../supabaseClient';
 import { Booking, SeasonalPricing } from '../types';
 
 interface BookingFormProps {
-    onSuccess: () => void;
+    onSuccess: (newBooking: Omit<Booking, 'id'>) => void;
     onCancel: () => void;
     booking?: Booking;
     mode: 'create' | 'edit';
@@ -143,10 +143,11 @@ const BookingForm = ({ onSuccess, onCancel, booking, mode }: BookingFormProps) =
         
         setIsSubmitting(true);
         try {
-            const bookingData = {
+            const bookingData: Omit<Booking, 'id'> = {
                 start_date: newBooking.start_date,
                 end_date: newBooking.end_date,
                 guest_name: newBooking.guest_name,
+                guest_email: newBooking.guest_email,
                 guest_phone: newBooking.guest_phone,
                 amount: newBooking.amount,
                 prepayment: newBooking.prepayment,
@@ -178,7 +179,7 @@ const BookingForm = ({ onSuccess, onCancel, booking, mode }: BookingFormProps) =
                 console.log('New booking created successfully');
             }
 
-            onSuccess();
+            onSuccess(bookingData);
         } catch (error) {
             console.error('Error saving booking:', error);
             alert(`Error saving booking: ${error instanceof Error ? error.message : 'Unknown error'}`);
@@ -188,7 +189,7 @@ const BookingForm = ({ onSuccess, onCancel, booking, mode }: BookingFormProps) =
     };
 
     return (
-        <div className="space-y-4">
+        <div className="space-y-4 px-4 py-3">
             <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                     <label className="block text-sm font-medium text-gray-700">Emri*</label>

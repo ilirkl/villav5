@@ -31,7 +31,7 @@ const BookingInvoice = ({ booking }: BookingInvoiceProps) => {
                 onClick={handlePrint}
                 className={`${styles.printButton} ${styles.noPrint}`}
             >
-                Print Invoice
+                Printo Fakturen
             </button>
 
             <div className={styles.invoice}>
@@ -47,8 +47,8 @@ const BookingInvoice = ({ booking }: BookingInvoiceProps) => {
                         />
                     </div>
                     <div className={styles.companyInfo}>
-                        <p>XK, Rruga e Brezovicës, Shtërpcë 73000</p>
-                        <p>Tel: 049 609 996 / 049 115 499</p>
+                        <p>Rruga e Brezovicës, Shtërpcë 7300, Kosove</p>
+                        <p>Tel: +383 49 609 996 / 49 115 499</p>
                         <a href="https://instagram.com/villaegurit" className="text-[#FF385C] hover:underline">
                             instagram.com/villaegurit
                         </a>
@@ -57,15 +57,15 @@ const BookingInvoice = ({ booking }: BookingInvoiceProps) => {
 
                 {/* Guest Information */}
                 <div className={styles.section}>
-                    <h2 className={styles.sectionTitle}>Guest Information</h2>
+                    <h2 className={styles.sectionTitle}>Informacione mbi Musafirin</h2>
                     <div className="space-y-1">
                         <div className="flex">
-                            <span className="w-32 text-gray-600">Guest Name:</span>
+                            <span className="w-32 text-gray-600">Emri:</span>
                             <span className="font-medium">{booking.guest_name}</span>
                         </div>
                         {booking.guest_phone && (
                             <div className="flex">
-                                <span className="w-32 text-gray-600">Phone:</span>
+                                <span className="w-32 text-gray-600">Telefoni:</span>
                                 <span>{booking.guest_phone}</span>
                             </div>
                         )}
@@ -74,7 +74,7 @@ const BookingInvoice = ({ booking }: BookingInvoiceProps) => {
 
                 {/* Booking Dates */}
                 <div className={styles.section}>
-                    <h2 className={styles.sectionTitle}>Booking Details</h2>
+                    <h2 className={styles.sectionTitle}>Detajet e Rezervimit</h2>
                     <div className={styles.dateBox}>
                         <div>
                             <p className="text-gray-600 text-sm">Check-in</p>
@@ -89,21 +89,21 @@ const BookingInvoice = ({ booking }: BookingInvoiceProps) => {
 
                 {/* Payment Information */}
                 <div className={styles.paymentSection}>
-                    <h2 className={styles.sectionTitle}>Payment Summary</h2>
+                    <h2 className={styles.sectionTitle}>Permbledhje e Pagesave</h2>
                     <div className="space-y-2">
                         <div className="flex justify-between items-center">
-                            <span className="text-gray-600">Total Amount</span>
+                            <span className="text-gray-600">Total</span>
                             <span className={styles.totalAmount}>€{booking.amount}</span>
                         </div>
                         <div className="flex justify-between items-center">
-                            <span className="text-gray-600">Prepayment</span>
+                            <span className="text-gray-600">Parapagim</span>
                             <span>€{booking.prepayment}</span>
                         </div>
                         <div className="flex justify-between items-center pt-2 border-t border-gray-100">
-                            <span className="text-gray-600">Remaining Balance</span>
+                            <span className="text-gray-600">Per Pagese</span>
                             <div className="text-right">
                                 <span className="block font-medium">€{remainingAmount}</span>
-                                <span className="text-xs text-gray-500">(Due at check-in)</span>
+                                <span className="text-xs text-gray-500">(ne check-in)</span>
                             </div>
                         </div>
                     </div>
@@ -111,8 +111,8 @@ const BookingInvoice = ({ booking }: BookingInvoiceProps) => {
 
                 {/* Footer */}
                 <div className={styles.footer}>
-                    <p>Thank you for choosing Villa e Gurit!</p>
-                    <p>We look forward to hosting you.</p>
+                    <p>Falemnderit qe zgjodhet Villa e Gurit!</p>
+                    <p>Me kënaqësi ju mirëpresim</p>
                 </div>
             </div>
         </div>

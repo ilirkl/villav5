@@ -11,7 +11,6 @@ export interface Booking {
     start_date: string;
     end_date: string;
     guest_name: string;
-    guest_email: string;
     guest_phone: string;
     amount: number;
     prepayment: number;
@@ -40,14 +39,40 @@ const Booking = () => {
     const [isLoading, setIsLoading] = useState(true);
     const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
     const [modalMode, setModalMode] = useState<'create' | 'edit'>('create');
+    const [startDate, setStartDate] = useState<string>('');
+    const [endDate, setEndDate] = useState<string>('');
+    const [sortBy, setSortBy] = useState<'date' | 'name' | 'amount'>('date');
+    const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
 
     const fetchBookings = useCallback(async () => {
         setIsLoading(true);
         try {
-            const { data, error } = await supabase
+            let query = supabase
                 .from('bookings')
-                .select('*')
-                .order('start_date', { ascending: true });
+                .select('*');
+
+            // Apply date filters
+            if (startDate) {
+                query = query.gte('start_date', startDate);
+            }
+            if (endDate) {
+                query = query.lte('end_date', endDate);
+            }
+
+            // Apply sorting
+            switch (sortBy) {
+                case 'date':
+                    query = query.order('start_date', { ascending: sortOrder === 'asc' });
+                    break;
+                case 'name':
+                    query = query.order('guest_name', { ascending: sortOrder === 'asc' });
+                    break;
+                case 'amount':
+                    query = query.order('amount', { ascending: sortOrder === 'asc' });
+                    break;
+            }
+
+            const { data, error } = await query;
 
             if (error) throw error;
             setBookings(data || []);
@@ -57,13 +82,31 @@ const Booking = () => {
         } finally {
             setIsLoading(false);
         }
-    }, []);
+    }, [startDate, endDate, sortBy, sortOrder]);
 
     useEffect(() => {
         fetchBookings();
     }, [fetchBookings]);
 
-    const handleBookingSuccess = async () => {
+    const handleBookingSuccess = async (newBooking: Omit<Booking, 'id'>) => {
+        // For existing bookings, we exclude the current booking when checking for overlaps
+        const otherBookings = modalMode === 'edit' && selectedBooking 
+            ? bookings.filter(b => b.id !== selectedBooking.id)
+            : bookings;
+
+        const hasOverlap = otherBookings.some(booking => {
+            const existingStart = new Date(booking.start_date);
+            const existingEnd = new Date(booking.end_date);
+            const newStart = new Date(newBooking.start_date);
+            const newEnd = new Date(newBooking.end_date);
+
+            return (newStart < existingEnd && newEnd > existingStart);
+        });
+
+        if (hasOverlap) {
+            alert('The selected dates are already booked. Please choose different dates.');
+            return;
+        }
         setIsModalOpen(false);
         setSelectedBooking(null);
         await fetchBookings();
@@ -111,8 +154,58 @@ const Booking = () => {
         );
     }
 
+    const handleSort = (newSortBy: 'date' | 'name' | 'amount') => {
+        if (sortBy === newSortBy) {
+            // If clicking the same sort option, toggle the order
+            setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
+        } else {
+            // If clicking a different sort option, set it with ascending order
+            setSortBy(newSortBy);
+            setSortOrder('asc');
+        }
+    };
+
     return (
         <div className="max-w-6xl mx-auto px-4 py-8">
+            {/* Filter and Sort UI */}
+            <div className="mb-6 flex flex-wrap gap-4 items-center">
+                <div className="flex items-center gap-2">
+                    <input
+                        type="date"
+                        value={startDate}
+                        onChange={(e) => setStartDate(e.target.value)}
+                        className="border rounded p-2"
+                        placeholder="Start Date"
+                    />
+                    <input
+                        type="date"
+                        value={endDate}
+                        onChange={(e) => setEndDate(e.target.value)}
+                        className="border rounded p-2"
+                        placeholder="End Date"
+                    />
+                </div>
+                <div className="flex gap-2">
+                    <button
+                        onClick={() => handleSort('date')}
+                        className={`px-3 py-1 rounded ${sortBy === 'date' ? 'bg-[#FF385C] text-white' : 'bg-gray-100'}`}
+                    >
+                        Date {sortBy === 'date' && (sortOrder === 'asc' ? '↑' : '↓')}
+                    </button>
+                    <button
+                        onClick={() => handleSort('name')}
+                        className={`px-3 py-1 rounded ${sortBy === 'name' ? 'bg-[#FF385C] text-white' : 'bg-gray-100'}`}
+                    >
+                        Name {sortBy === 'name' && (sortOrder === 'asc' ? '↑' : '↓')}
+                    </button>
+                    <button
+                        onClick={() => handleSort('amount')}
+                        className={`px-3 py-1 rounded ${sortBy === 'amount' ? 'bg-[#FF385C] text-white' : 'bg-gray-100'}`}
+                    >
+                        Amount {sortBy === 'amount' && (sortOrder === 'asc' ? '↑' : '↓')}
+                    </button>
+                </div>
+            </div>
             {/* Add Booking Button */}
             <button
                 onClick={handleAdd}
@@ -155,10 +248,6 @@ const Booking = () => {
                                             <span className="hidden sm:inline">•</span>
                                             <a href={`tel:${booking.guest_phone}`} className="hover:text-[#FF385C] transition-colors">
                                                 {booking.guest_phone}
-                                            </a>
-                                            <span>•</span>
-                                            <a href={`mailto:${booking.guest_email}`} className="hover:text-[#FF385C] transition-colors">
-                                                {booking.guest_email}
                                             </a>
                                         </div>
 

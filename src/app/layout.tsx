@@ -22,6 +22,18 @@ export default function RootLayout({
       try {
         const { data: { session } } = await supabase.auth.getSession();
         setIsAuthenticated(!!session);
+        
+        // If not authenticated and not on login page, redirect to login
+        if (!session && !isLoginPage) {
+          window.location.href = '/login';
+          return;
+        }
+        
+        // If authenticated and on login page, redirect to home
+        if (session && isLoginPage) {
+          window.location.href = '/';
+          return;
+        }
       } catch (error) {
         console.error('Error checking auth status:', error);
       } finally {
@@ -33,13 +45,21 @@ export default function RootLayout({
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setIsAuthenticated(!!session);
+      
+      // Handle auth state changes
+      if (!session && !isLoginPage) {
+        window.location.href = '/login';
+      } else if (session && isLoginPage) {
+        window.location.href = '/';
+      }
     });
 
     return () => {
       subscription.unsubscribe();
     };
-  }, []);
+  }, [isLoginPage]);
 
+  // Show loading state while checking authentication
   if (isLoading) {
     return (
       <html lang="en">
@@ -50,6 +70,16 @@ export default function RootLayout({
         </body>
       </html>
     );
+  }
+
+  // If not authenticated and not on login page, don't render anything while redirecting
+  if (!isAuthenticated && !isLoginPage) {
+    return null;
+  }
+
+  // If authenticated and on login page, don't render anything while redirecting
+  if (isAuthenticated && isLoginPage) {
+    return null;
   }
 
   return (

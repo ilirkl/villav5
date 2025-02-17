@@ -145,7 +145,7 @@ const ExpenseForm = ({ onSuccess, onCancel, expense, mode }: ExpenseFormProps) =
     };
 
     return (
-        <div className="space-y-4">
+        <div className="space-y-4 px-4 py-3">
         <div className="grid grid-cols-3 gap-4">
             <div className="space-y-2">
                 <label className="block text-sm font-medium text-gray-700">Kategoria*</label>

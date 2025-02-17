@@ -29,7 +29,7 @@ const BookingDetails = ({ booking }: BookingDetailsProps) => {
     const remainingAmount = booking.amount - booking.prepayment;
 
     return (
-        <div className="space-y-4">
+        <div className="space-y-4 px-4 py-3">
             <div>
                 <h3 className="text-lg font-medium text-gray-900">{booking.guest_name}</h3>
                 <div className="mt-2 text-sm text-gray-600">
