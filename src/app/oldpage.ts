@@ -23,6 +23,7 @@ interface Booking {
     notes: string;
 }
 
+
 export default function Home() {
     const router = useRouter();
     const [bookings, setBookings] = useState<Booking[]>([]);
@@ -86,7 +87,7 @@ export default function Home() {
                 <div className="guest-name">
                     {booking.guest_name}
                 </div>
-            </div>
+                </div>
         );
     };
 
@@ -132,9 +133,9 @@ export default function Home() {
                         },
                         dayGridWeek: {
                             titleFormat: { year: 'numeric', month: 'short', day: 'numeric' }
-                        },
+                        }
                         listWeek: {
-                            titleFormat: { year: 'numeric', month: 'short', day: 'numeric' }
+                          
                         }
                     }}
                 />

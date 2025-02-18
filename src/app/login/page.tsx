@@ -36,7 +36,7 @@ export default function LoginPage() {
             <div className="max-w-md w-full space-y-8">
                 <div>
                     <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-                        Sign in to your account
+                        Hyr ne Llogari
                     </h2>
                 </div>
                 <form className="mt-8 space-y-6" onSubmit={handleLogin}>
@@ -48,7 +48,7 @@ export default function LoginPage() {
                     <div className="rounded-md shadow-sm -space-y-px">
                         <div>
                             <label htmlFor="email-address" className="sr-only">
-                                Email address
+                                Email adresa
                             </label>
                             <input
                                 id="email-address"
@@ -64,7 +64,7 @@ export default function LoginPage() {
                         </div>
                         <div>
                             <label htmlFor="password" className="sr-only">
-                                Password
+                                Fjalkalimi
                             </label>
                             <input
                                 id="password"
@@ -86,7 +86,7 @@ export default function LoginPage() {
                             disabled={loading}
                             className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-[#FF385C] hover:bg-[#FF385C]/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#FF385C]"
                         >
-                            {loading ? 'Signing in...' : 'Sign in'}
+                            {loading ? 'Signing in...' : 'Hyr'}
                         </button>
                     </div>
                 </form>

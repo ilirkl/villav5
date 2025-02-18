@@ -219,7 +219,7 @@ const SeasonalPricingSettings = () => {
             <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
-                        <label className="block text-sm font-medium text-gray-700">Start Date</label>
+                        <label className="block text-sm font-medium text-gray-700">Nga</label>
                         <input
                             type="date"
                             value={newPricing.start_date}
@@ -229,7 +229,7 @@ const SeasonalPricingSettings = () => {
                         />
                     </div>
                     <div className="space-y-2">
-                        <label className="block text-sm font-medium text-gray-700">End Date</label>
+                        <label className="block text-sm font-medium text-gray-700">Deri</label>
                         <input
                             type="date"
                             value={newPricing.end_date}
@@ -265,7 +265,7 @@ const SeasonalPricingSettings = () => {
                         disabled={isSubmitting}
                         className="flex-1 px-6 py-3 bg-[#FF385C] text-white rounded-lg hover:bg-[#FF385C]/90 transition-colors disabled:opacity-50"
                     >
-                        {isSubmitting ? (editMode ? 'Updating...' : 'Adding...') : (editMode ? 'Update Seasonal Pricing' : 'Add Seasonal Pricing')}
+                        {isSubmitting ? (editMode ? 'Updating...' : 'Adding...') : (editMode ? 'Ndrysho' : 'Shto')}
                     </button>
                     {editMode && (
                         <button
@@ -273,14 +273,14 @@ const SeasonalPricingSettings = () => {
                             onClick={handleCancel}
                             className="flex-1 px-6 py-3 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
                         >
-                            Cancel
+                            Anulo
                         </button>
                     )}
                 </div>
             </form>
 
             <div className="mt-8">
-                <h3 className="text-lg font-medium text-gray-900 mb-4">Existing Seasonal Prices</h3>
+                <h3 className="text-lg font-medium text-gray-900 mb-4">Cmimet Sezonale Egzistuse</h3>
                 <div className="space-y-4">
                     {seasonalPricings.map((pricing) => (
                         <div key={pricing.id} className="bg-gray-50 p-4 rounded-lg">
@@ -310,13 +310,13 @@ const SeasonalPricingSettings = () => {
                                 </div>
                             </div>
                             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 text-sm">
-                                <p>Monday: €{pricing.monday_price}</p>
-                                <p>Tuesday: €{pricing.tuesday_price}</p>
-                                <p>Wednesday: €{pricing.wednesday_price}</p>
-                                <p>Thursday: €{pricing.thursday_price}</p>
-                                <p>Friday: €{pricing.friday_price}</p>
-                                <p>Saturday: €{pricing.saturday_price}</p>
-                                <p>Sunday: €{pricing.sunday_price}</p>
+                                <p>Hane: €{pricing.monday_price}</p>
+                                <p>Marte: €{pricing.tuesday_price}</p>
+                                <p>Merkure: €{pricing.wednesday_price}</p>
+                                <p>Enjte: €{pricing.thursday_price}</p>
+                                <p>Premte: €{pricing.friday_price}</p>
+                                <p>Shtune: €{pricing.saturday_price}</p>
+                                <p>Diele: €{pricing.sunday_price}</p>
                             </div>
                         </div>
                     ))}

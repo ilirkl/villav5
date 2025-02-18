@@ -154,14 +154,14 @@ const Booking = () => {
         );
     }
 
-    const handleSort = (newSortBy: 'date' | 'name' | 'amount') => {
+    const handleSort = (newSortBy: 'date' | 'name' ) => {
         if (sortBy === newSortBy) {
             // If clicking the same sort option, toggle the order
             setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
         } else {
             // If clicking a different sort option, set it with ascending order
             setSortBy(newSortBy);
-            setSortOrder('asc');
+            setSortOrder('desc');
         }
     };
 
@@ -190,20 +190,15 @@ const Booking = () => {
                         onClick={() => handleSort('date')}
                         className={`px-3 py-1 rounded ${sortBy === 'date' ? 'bg-[#FF385C] text-white' : 'bg-gray-100'}`}
                     >
-                        Date {sortBy === 'date' && (sortOrder === 'asc' ? '↑' : '↓')}
+                        Data {sortBy === 'date' && (sortOrder === 'asc' ? '↑' : '↓')}
                     </button>
                     <button
                         onClick={() => handleSort('name')}
                         className={`px-3 py-1 rounded ${sortBy === 'name' ? 'bg-[#FF385C] text-white' : 'bg-gray-100'}`}
                     >
-                        Name {sortBy === 'name' && (sortOrder === 'asc' ? '↑' : '↓')}
+                        Emri {sortBy === 'name' && (sortOrder === 'asc' ? '↑' : '↓')}
                     </button>
-                    <button
-                        onClick={() => handleSort('amount')}
-                        className={`px-3 py-1 rounded ${sortBy === 'amount' ? 'bg-[#FF385C] text-white' : 'bg-gray-100'}`}
-                    >
-                        Amount {sortBy === 'amount' && (sortOrder === 'asc' ? '↑' : '↓')}
-                    </button>
+                   
                 </div>
             </div>
             {/* Add Booking Button */}
