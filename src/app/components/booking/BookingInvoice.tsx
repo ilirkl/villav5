@@ -47,7 +47,7 @@ const BookingInvoice = ({ booking }: BookingInvoiceProps) => {
     const script = document.createElement('script');
     script.src = 'https://cdn.jsdelivr.net/npm/eruda';
     script.onload = () => {
-      // @ts-expect-error
+      // @ts-expect-error - TypeScript may not recognize `eruda` as it’s dynamically loaded
       if (typeof eruda !== 'undefined') eruda.init();
     };
     document.head.appendChild(script);
