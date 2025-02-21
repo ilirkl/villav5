@@ -4,7 +4,7 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { supabase } from '../../../utils/supabaseClient';
 import Modal from '../Modal';
 import BookingForm from '../booking/BookingForm';
-import BookingInvoice from '../booking/BookingInvoice';
+import BookingInvoice from './BookingInvoice';
 
 export interface Booking {
     id: number;
@@ -144,6 +144,7 @@ const Booking = () => {
     const handleInvoice = (booking: Booking) => {
         setSelectedBooking(booking);
         setIsInvoiceModalOpen(true);
+        
     };
 
     if (isLoading) {

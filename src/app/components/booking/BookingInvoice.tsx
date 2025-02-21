@@ -44,13 +44,24 @@ const BookingInvoice = ({ booking }: BookingInvoiceProps) => {
   }, []);
 
   const handlePrint = () => {
-    window.print(); // Use existing page with @media print styles
+    const invoiceElement = document.querySelector(`.${styles.invoice}`);
+    if (!invoiceElement) {
+      console.error('Invoice element not found');
+      return;
+    }
+  
+    const printContents = invoiceElement.outerHTML;
+    const originalContents = document.body.innerHTML;
+  
+    document.body.innerHTML = printContents;
+    window.print();
+    document.body.innerHTML = originalContents; // Restore original content
+    window.location.reload(); // Optional: Reset state after printing
   };
-
   if (!profile) return <div>Loading...</div>;
 
   return (
-    <div className="printRoot">
+    <div className={`${styles.printRoot} bg-white`}>
       <button
         onClick={handlePrint}
         className={`${styles.printButton} ${styles.noPrint}`}
@@ -103,14 +114,14 @@ const BookingInvoice = ({ booking }: BookingInvoiceProps) => {
         <div className={styles.section}>
           <h2 className={styles.sectionTitle}>Detajet e Rezervimit</h2>
           <div className={styles.dateBox}>
-            <div>
-              <p className="text-gray-600 text-sm">Check-in</p>
-              <p className="font-medium">{formatDate(booking.start_date)}</p>
-            </div>
-            <div>
-              <p className="text-gray-600 text-sm">Check-out</p>
-              <p className="font-medium">{formatDate(booking.end_date)}</p>
-            </div>
+          <div className="bg-[#f9fafb]">
+            <p className="text-gray-600 text-sm bg-[#f9fafb]">Check-in</p>
+                <p className="font-medium bg-[#f9fafb]">{formatDate(booking.start_date)}</p>
+          </div>
+          <div className="bg-[#f9fafb]">
+            <p className="text-gray-600 text-sm bg-[#f9fafb]">Check-out</p>
+            <p className="font-medium bg-[#f9fafb]">{formatDate(booking.end_date)}</p>
+         </div>
           </div>
         </div>
 
