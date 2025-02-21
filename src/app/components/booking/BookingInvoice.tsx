@@ -6,6 +6,7 @@ import { Booking } from '../../../types/types';
 import styles from './BookingInvoice.module.css';
 import Image from 'next/image';
 
+
 interface BookingInvoiceProps {
   booking: Booking;
 }
@@ -41,8 +42,21 @@ const BookingInvoice = ({ booking }: BookingInvoiceProps) => {
       setProfile(data);
     };
     fetchProfile();
-  }, []);
 
+    // Load Eruda for debugging
+    const script = document.createElement('script');
+    script.src = 'https://cdn.jsdelivr.net/npm/eruda';
+    script.onload = () => {
+      // @ts-ignore
+      if (typeof eruda !== 'undefined') eruda.init();
+    };
+    document.head.appendChild(script);
+
+    return () => {
+      document.head.removeChild(script); // Clean up on unmount
+    };
+}, []);
+  
   const handlePrint = () => {
     const printWindow = window.open('', '_blank', 'width=800,height=600');
     if (printWindow) {
