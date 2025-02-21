@@ -46,10 +46,15 @@ const BookingInvoice = ({ booking }: BookingInvoiceProps) => {
   const handlePrint = () => {
     const printWindow = window.open('', '_blank');
     if (printWindow) {
-      const invoiceElement = document.querySelector(`.${styles.invoice}`);
-      if (!invoiceElement) return;
-
-      // Raw CSS with Tailwind's font-sans family and updated payment section styling
+    const invoiceElement = document.querySelector(`.${styles.invoice}`);
+    if (!invoiceElement) {
+        console.error('Invoice element not found');
+        return;
+      }
+    const styleElement = Array.from(document.querySelectorAll('style'))
+            .find(style => style.innerHTML.includes('.BookingInvoice-module__')); // Look for module-specific styles
+    const moduleCSS = styleElement ? styleElement.innerHTML : '';
+      
      const fallbackCSS = `
         .${styles.invoice} { background-color: white; padding: 1.5rem; max-width: 48rem; margin: 0 auto; font-family: Arial, sans-serif; color: #111827; }
         .${styles.header} { border-bottom: 1px solid #e5e7eb; padding-bottom: 1.5rem; margin-bottom: 1.5rem; }
