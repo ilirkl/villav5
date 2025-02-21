@@ -47,7 +47,7 @@ const BookingInvoice = ({ booking }: BookingInvoiceProps) => {
     const script = document.createElement('script');
     script.src = 'https://cdn.jsdelivr.net/npm/eruda';
     script.onload = () => {
-      // @ts-ignore
+      // @ts-expect-error
       if (typeof eruda !== 'undefined') eruda.init();
     };
     document.head.appendChild(script);
