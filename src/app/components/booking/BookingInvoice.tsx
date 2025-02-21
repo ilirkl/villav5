@@ -6,6 +6,7 @@ import { Booking } from '../../../types/types';
 import styles from './BookingInvoice.module.css';
 import Image from 'next/image';
 
+
 interface BookingInvoiceProps {
   booking: Booking;
 }
@@ -41,150 +42,92 @@ const BookingInvoice = ({ booking }: BookingInvoiceProps) => {
       setProfile(data);
     };
     fetchProfile();
-  }, []);
 
+    // Load Eruda for debugging
+    const script = document.createElement('script');
+    script.src = 'https://cdn.jsdelivr.net/npm/eruda';
+    script.onload = () => {
+      // @ts-expect-error - TypeScript may not recognize `eruda` as it’s dynamically loaded
+      if (typeof eruda !== 'undefined') eruda.init();
+    };
+    document.head.appendChild(script);
+
+    return () => {
+      document.head.removeChild(script); // Clean up on unmount
+    };
+}, []);
+  
   const handlePrint = () => {
-    const printWindow = window.open('', '_blank');
+    const printWindow = window.open('', '_blank', 'width=800,height=600');
     if (printWindow) {
       const invoiceElement = document.querySelector(`.${styles.invoice}`);
-      if (!invoiceElement) return;
+      if (!invoiceElement) {
+        console.error('Invoice element not found');
+        return;
+      }
 
-      // Raw CSS with Tailwind's font-sans family and updated payment section styling
-      const invoiceStyles = `
-        /* Apply Tailwind's default font-sans globally */
-        body, .${styles.invoice}, .${styles.invoice} * {
-          font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
-        }
-        .${styles.invoice} {
-          background-color: white;
-          padding: 1.5rem;
-          max-width: 48rem;
-          margin: 0 auto;
-        }
-        .${styles.header} {
-          border-bottom: 1px solid #e5e7eb;
-          padding-bottom: 1.5rem;
-          margin-bottom: 1.5rem;
-        }
-        .${styles.logo} {
-          display: flex;
-          justify-content: center;
-          margin-bottom: 1rem;
-        }
-        .${styles.logo} img {
-          height: 80px;
-          width: auto;
-        }
-        .${styles.companyInfo} {
-          font-size: 0.875rem;
-          color: #4b5563;
-          text-align: center;
-        }
-        .${styles.section} {
-          margin-bottom: 1.5rem;
-        }
-        .${styles.sectionTitle} {
-          font-size: 1.125rem;
-          font-weight: 600;
-          color: #111827;
-          margin-bottom: 0.75rem;
-        }
-        .${styles.dateBox} {
-          background-color: #f9fafb;
-          border-radius: 0.5rem;
-          padding: 1rem;
-          display: grid;
-          grid-template-columns: repeat(2, 1fr);
-          gap: 1rem;
-        }
-        .${styles.paymentSection} div {
-            justify-content: space-between !important;
-            display: grid;
-            grid-template-columns: repeat(2, 2fr);
-          }
-          .${styles.paymentSection} span.text-gray-600 {
-            width: 120px !important;
-            text-align: left !important;
-            color: #4b5563 !important;
-            font-size: 1rem !important;
-          }
-          .${styles.totalAmount} span:not(.text-gray-600) {
-            text-align: right !important;
-            font-size: 1.5rem !important;
-            font-weight: bold !important;
-            color: #111827 !important;
-          }
-        .${styles.footer} {
-          text-align: center;
-          color: #6b7280;
-          font-size: 0.875rem;
-          border-top: 1px solid #e5e7eb;
-          padding-top: 1.5rem;
-          margin-top: 2rem;
-        }
+      console.log('Invoice HTML:', invoiceElement.outerHTML);
+
+      // Dynamically extract the styles from BookingInvoice.module.css
+      // Since CSS Modules are compiled, we need to find the styles in the DOM or use a static import
+      // For simplicity, we'll use the DOM approach to find the style tag containing our module styles
+      const styleElement = Array.from(document.querySelectorAll('style'))
+        .find(style => style.innerHTML.includes('.BookingInvoice-module__')); // Look for module-specific styles
+      const moduleCSS = styleElement ? styleElement.innerHTML : '';
+
+      // Fallback: Use a simplified version if DOM extraction fails (optional, remove if not needed)
+      const fallbackCSS = `
+        .${styles.invoice} { background-color: white; padding: 1.5rem; max-width: 48rem; margin: 0 auto; font-family: Arial, sans-serif; color: #111827; }
+        .${styles.header} { border-bottom: 1px solid #e5e7eb; padding-bottom: 1.5rem; margin-bottom: 1.5rem; }
+        .${styles.logo} { display: flex; justify-content: center; margin-bottom: 1rem; }
+        .${styles.logo} img { height: 80px; width: auto; }
+        .${styles.companyInfo} { font-size: 0.875rem; color: #4b5563; text-align: center; font-family: Arial, sans-serif; }
+        .${styles.companyInfo} p { margin: 0.25rem 0; color: #4b5563; font-size: 0.875rem; }
+        .${styles.companyInfo} a { color: #FF385C; text-decoration: none; }
+        .${styles.companyInfo} a:hover { text-decoration: underline; }
+        .${styles.section} { margin-bottom: 1.5rem; }
+        .${styles.sectionTitle} { font-size: 1.125rem; font-weight: 600; color: #111827; margin-bottom: 0.75rem; font-family: Arial, sans-serif; }
+        .${styles.dateBox} { background-color: #f9fafb; border-radius: 0.5rem; padding: 1rem; display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; }
+        .${styles.dateBox} p { margin: 0; font-family: Arial, sans-serif; }
+        .${styles.dateBox} p:first-child { color: #6b7280; font-size: 0.875rem; }
+        .${styles.dateBox} p:last-child { color: #111827; font-weight: 500; }
+        .${styles.paymentSection} { border-top: 1px solid #e5e7eb; padding-top: 1.5rem; margin-top: 2rem; }
+        .${styles.paymentSection} .space-y-2 { display: flex; flex-direction: column; gap: 0.5rem; }
+        .${styles.paymentSection} .flex { display: flex; justify-content: space-between; align-items: center; width: 100%; }
+        .${styles.paymentSection} span { color: #6b7280; font-family: Arial, sans-serif; font-size: 1rem; }
+        .${styles.totalAmount} { font-size: 1.5rem; font-weight: bold; color: #111827; font-family: Arial, sans-serif; }
+        .${styles.paymentSection} .text-right { text-align: right; display: block; }
+        .${styles.paymentSection} .text-right .block { font-weight: 500; color: #111827; font-size: 1rem; display: block; }
+        .${styles.paymentSection} .text-right .text-xs { color: #6b7280; font-size: 0.75rem; display: block; margin-top: 0.25rem; }
+        .${styles.footer} { text-align: center; color: #6b7280; font-size: 0.875rem; border-top: 1px solid #e5e7eb; padding-top: 1.5rem; margin-top: 2rem; font-family: Arial, sans-serif; }
+        .${styles.footer} p { margin: 0.25rem 0; color: #6b7280; font-size: 0.875rem; }
+        .${styles.section} .space-y-1 .flex { display: flex; justify-content: space-between; align-items: center; width: 100%; }
+        .${styles.section} .space-y-1 .flex span { font-family: Arial, sans-serif; }
+        .${styles.section} .space-y-1 .flex .w-32 { color: #6b7280; font-size: 1rem; }
+        .${styles.section} .space-y-1 .flex .font-medium { color: #111827; font-weight: 500; font-size: 1rem; }
         @media print {
-          @page {
-            margin: 15mm;
-            size: A4;
-          }
-          body {
-            margin: 0;
-            padding: 0;
-            background: white;
-          }
-          html {
-            background: white;
-            height: 100%;
-            width: 100%;
-            overflow: visible;
-          }
-          .${styles.printRoot} * {
-            visibility: hidden;
-          }
-          .${styles.invoice},
-          .${styles.invoice} * {
-            visibility: visible !important;
-          }
-          .${styles.invoice} {
-            position: static;
-            padding: 1.5rem;
-            max-width: 48rem;
-            margin: 0 auto;
-            box-sizing: border-box;
-            background: white;
-          }
-          .${styles.noPrint} {
-            display: none !important;
-          }
-          .${styles.logo} img {
-            height: 60px !important;
-            width: auto !important;
-          }
-         .${styles.paymentSection} div {
-            justify-content: space-between !important;
-            
-          }
-          .${styles.paymentSection} span.text-gray-600 {
-            width: 120px !important;
-            text-align: left !important;
-            color: #4b5563 !important;
-            font-size: 1rem !important;
-          }
-          .${styles.totalAmount} span:not(.text-gray-600) {
-            text-align: right !important;
-            font-size: 1.5rem !important;
-            font-weight: bold !important;
-            color: #111827 !important;
-          }
+          @page { margin: 15mm; size: A4; }
+          body { margin: 0; padding: 0; }
+          .${styles.invoice} { padding: 1.5rem; max-width: 48rem; margin: 0 auto; box-sizing: border-box; background: white; position: relative; width: 100%; break-inside: avoid; page-break-after: always; }
+          .${styles.noPrint} { display: none !important; }
+          .${styles.logo} img { height: 60px !important; width: auto !important; }
+          .${styles.paymentSection} .flex { display: flex !important; justify-content: space-between !important; align-items: flex-start !important; }
+          .${styles.paymentSection} .space-y-2 { display: flex !important; flex-direction: column !important; gap: 0.5rem !important; }
+          .${styles.paymentSection} .text-right { display: block !important; text-align: right !important; }
+          .${styles.paymentSection} .text-right .block { display: block !important; font-weight: 500 !important; color: #111827 !important; font-size: 1rem !important; }
+          .${styles.paymentSection} .text-right .text-xs { display: block !important; color: #6b7280 !important; font-size: 0.75rem !important; margin-top: 0.25rem !important; }
         }
       `;
 
+      printWindow.document.open();
       printWindow.document.write(`
+        <!DOCTYPE html>
         <html>
           <head>
+            <meta charset="UTF-8">
             <title>Invoice</title>
             <style>
-              ${invoiceStyles}
+              ${moduleCSS || fallbackCSS}
             </style>
           </head>
           <body>
@@ -194,11 +137,14 @@ const BookingInvoice = ({ booking }: BookingInvoiceProps) => {
           </body>
         </html>
       `);
-
       printWindow.document.close();
-      printWindow.focus();
-      printWindow.print();
-      printWindow.close();
+
+      printWindow.onload = () => {
+        console.log('Print window loaded, styles in head:', printWindow.document.head.innerHTML);
+        printWindow.focus();
+        printWindow.print();
+        printWindow.close();
+      };
     }
   };
 

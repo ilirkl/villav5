@@ -1,0 +1,160 @@
+@media print {
+  @page {
+      margin: 15mm;
+      size: A4;
+  }
+
+  .printRoot * {
+      visibility: hidden;
+  }
+
+  .invoice,
+  .invoice * {
+      visibility: visible !important;
+  }
+
+  .invoice {
+      position: fixed;
+      left: 0;
+      top: 0;
+      width: 100%;
+      padding: 0 !important;
+      margin: 0 !important;
+      background: none !important;
+  }
+
+  .noPrint {
+      display: none !important;
+  }
+
+  .logo {
+      margin-bottom: 0.5rem !important;
+  }
+
+  .logo img {
+      height: 60px !important;
+      width: auto !important;
+  }
+
+  .header {
+      padding-bottom: 1rem !important;
+      margin-bottom: 1rem !important;
+  }
+
+  .section {
+      margin-bottom: 1rem !important;
+  }
+
+  .dateBox {
+      padding: 0.5rem !important;
+      margin-bottom: 1rem !important;
+  }
+
+  .paymentSection {
+      padding-top: 1rem !important;
+      margin-top: 1rem !important;
+  }
+
+  .footer {
+      padding-top: 1rem !important;
+      margin-top: 1rem !important;
+  }
+
+  .companyInfo {
+      font-size: 0.75rem !important;
+      line-height: 1.2 !important;
+  }
+
+  .sectionTitle {
+      font-size: 1rem !important;
+      margin-bottom: 0.5rem !important;
+  }
+
+  .totalAmount {
+      font-size: 1.25rem !important;
+  }
+}
+
+.invoice {
+  background-color: white;
+  padding: 1.5rem;
+  max-width: 48rem;
+  margin: 0 auto;
+}
+
+.printButton {
+  margin-bottom: 1.5rem;
+  padding: 0.5rem 1rem;
+  background-color: #FF385C;
+  color: white;
+  border-radius: 0.5rem;
+  transition: background-color 0.2s;
+}
+
+.printButton:hover {
+  background-color: rgba(255, 56, 92, 0.9);
+}
+
+.header {
+  border-bottom: 1px solid #e5e7eb;
+  padding-bottom: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.logo {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 1rem;
+}
+
+.logo img {
+  height: 80px;
+  width: auto;
+}
+
+.companyInfo {
+  font-size: 0.875rem;
+  color: #4b5563;
+  text-align: center;
+}
+
+.section {
+  margin-bottom: 1.5rem;
+}
+
+.sectionTitle {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #111827;
+  margin-bottom: 0.75rem;
+}
+
+.dateBox {
+  background-color: #f9fafb;
+  border-radius: 0.5rem;
+  padding: 1rem;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+}
+
+.paymentSection {
+  border-top: 1px solid #e5e7eb;
+  padding-top: 1.5rem;
+  margin-top: 2rem;
+}
+
+.totalAmount {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #111827;
+}
+
+.footer {
+  text-align: center;
+  color: #6b7280;
+  font-size: 0.875rem;
+  border-top: 1px solid #e5e7eb;
+  padding-top: 1.5rem;
+  margin-top: 2rem;
+}
