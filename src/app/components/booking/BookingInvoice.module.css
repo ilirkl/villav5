@@ -191,7 +191,6 @@
 @media print {
   @page {
     margin: 15mm;
-    size: A4;
   }
   .invoice {
     padding: 1.5rem;
