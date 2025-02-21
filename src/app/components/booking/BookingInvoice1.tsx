@@ -6,6 +6,7 @@ import { Booking } from '../../../types/types';
 import styles from './BookingInvoice.module.css';
 import Image from 'next/image';
 
+
 interface BookingInvoiceProps {
   booking: Booking;
 }
@@ -41,16 +42,41 @@ const BookingInvoice = ({ booking }: BookingInvoiceProps) => {
       setProfile(data);
     };
     fetchProfile();
-  }, []);
 
+    // Load Eruda for debugging
+    const script = document.createElement('script');
+    script.src = 'https://cdn.jsdelivr.net/npm/eruda';
+    script.onload = () => {
+      // @ts-expect-error - TypeScript may not recognize `eruda` as it’s dynamically loaded
+      if (typeof eruda !== 'undefined') eruda.init();
+    };
+    document.head.appendChild(script);
+
+    return () => {
+      document.head.removeChild(script); // Clean up on unmount
+    };
+}, []);
+  
   const handlePrint = () => {
-    const printWindow = window.open('', '_blank');
+    const printWindow = window.open('', '_blank', 'width=800,height=600');
     if (printWindow) {
       const invoiceElement = document.querySelector(`.${styles.invoice}`);
-      if (!invoiceElement) return;
+      if (!invoiceElement) {
+        console.error('Invoice element not found');
+        return;
+      }
 
-      // Raw CSS with Tailwind's font-sans family and updated payment section styling
-     const fallbackCSS = `
+      console.log('Invoice HTML:', invoiceElement.outerHTML);
+
+      // Dynamically extract the styles from BookingInvoice.module.css
+      // Since CSS Modules are compiled, we need to find the styles in the DOM or use a static import
+      // For simplicity, we'll use the DOM approach to find the style tag containing our module styles
+      const styleElement = Array.from(document.querySelectorAll('style'))
+        .find(style => style.innerHTML.includes('.BookingInvoice-module__')); // Look for module-specific styles
+      const moduleCSS = styleElement ? styleElement.innerHTML : '';
+
+      // Fallback: Use a simplified version if DOM extraction fails (optional, remove if not needed)
+      const fallbackCSS = `
         .${styles.invoice} { background-color: white; padding: 1.5rem; max-width: 48rem; margin: 0 auto; font-family: Arial, sans-serif; color: #111827; }
         .${styles.header} { border-bottom: 1px solid #e5e7eb; padding-bottom: 1.5rem; margin-bottom: 1.5rem; }
         .${styles.logo} { display: flex; justify-content: center; margin-bottom: 1rem; }
@@ -93,6 +119,7 @@ const BookingInvoice = ({ booking }: BookingInvoiceProps) => {
         }
       `;
 
+      printWindow.document.open();
       printWindow.document.write(`
         <!DOCTYPE html>
         <html>
@@ -110,11 +137,14 @@ const BookingInvoice = ({ booking }: BookingInvoiceProps) => {
           </body>
         </html>
       `);
-
       printWindow.document.close();
-      printWindow.focus();
-      printWindow.print();
-      printWindow.close();
+
+      printWindow.onload = () => {
+        console.log('Print window loaded, styles in head:', printWindow.document.head.innerHTML);
+        printWindow.focus();
+        printWindow.print();
+        printWindow.close();
+      };
     }
   };
 
