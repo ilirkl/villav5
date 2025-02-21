@@ -144,7 +144,6 @@ const Booking = () => {
     const handleInvoice = (booking: Booking) => {
         setSelectedBooking(booking);
         setIsInvoiceModalOpen(true);
-        
     };
 
     if (isLoading) {

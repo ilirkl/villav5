@@ -13,6 +13,7 @@
   .invoice * {
       visibility: visible !important;
       background-color: white !important;
+      page-break-inside: avoid;
   }
 
   .invoice {
@@ -24,13 +25,14 @@
       margin: 0 !important;
       background-color: white !important;
       transform: translate(-50%, -50%);
-     
-  }
+      page-break-after: always;
+      }
 
   .noPrint {
       
     display: none !important;
   }
+ 
 
   .logo {
       margin-bottom: 0.5rem !important;
