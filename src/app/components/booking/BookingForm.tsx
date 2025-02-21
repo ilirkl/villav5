@@ -1,8 +1,8 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import { supabase } from '../supabaseClient';
-import { Booking, SeasonalPricing } from '../types';
+import { supabase } from '../../../utils/supabaseClient';
+import { Booking, SeasonalPricing } from '../../../types/types';
 
 interface BookingFormProps {
     onSuccess: (newBooking: Omit<Booking, 'id'>) => void;

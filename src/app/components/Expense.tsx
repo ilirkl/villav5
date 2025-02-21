@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState, useCallback } from 'react';
-import { supabase } from '../supabaseClient';
+import { supabase } from '../../utils/supabaseClient';
 import Modal from './Modal';
 import ExpenseForm from './ExpenseForm';
 

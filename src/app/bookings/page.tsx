@@ -1,5 +1,5 @@
 import React from 'react';
-import Booking from '../components/Booking';
+import Booking from '../components/booking/Booking';
 
 export default function BookingsPage() {
     return (

@@ -1,8 +1,8 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import { supabase } from '../supabaseClient';
-import { SeasonalPricing } from '../types';
+import { supabase } from '../../../utils/supabaseClient';
+import { SeasonalPricing } from '../../../types/types';
 import { Session } from '@supabase/supabase-js';
 
 const SeasonalPricingSettings = () => {

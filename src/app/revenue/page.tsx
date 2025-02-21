@@ -1,8 +1,8 @@
 "use client";
 
 import React, { useEffect, useState, useCallback } from 'react';
-import { supabase } from '../supabaseClient';
-import { Booking } from '../components/Booking';
+import { supabase } from '../../utils/supabaseClient';
+import { Booking } from '../components/booking/Booking';
 import { BarChart, Bar, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
 interface FinancialData {

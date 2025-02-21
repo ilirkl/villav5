@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react';
 import { usePathname } from 'next/navigation';
 import Header from './components/Header';
 import Navbar from './components/Navbar';
-import { supabase } from './supabaseClient';
+import { supabase } from '../utils/supabaseClient';
 
 export default function RootLayout({
   children,

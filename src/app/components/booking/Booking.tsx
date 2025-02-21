@@ -1,10 +1,10 @@
 "use client";
 
 import React, { useEffect, useState, useCallback } from 'react';
-import { supabase } from '../supabaseClient';
-import Modal from './Modal';
-import BookingForm from './BookingForm';
-import BookingInvoice from './BookingInvoice';
+import { supabase } from '../../../utils/supabaseClient';
+import Modal from '../Modal';
+import BookingForm from '../booking/BookingForm';
+import BookingInvoice from '../booking/BookingInvoice';
 
 export interface Booking {
     id: number;
