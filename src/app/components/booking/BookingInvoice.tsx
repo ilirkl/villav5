@@ -45,12 +45,7 @@ const BookingInvoice = ({ booking }: BookingInvoiceProps) => {
 
   const handlePrint = () => {
     const invoiceElement = document.querySelector(`.${styles.invoice}`);
-    if (!invoiceElement) {
-      console.error('Invoice element not found');
-      return;
-    }
-  
-    const printContents = invoiceElement.outerHTML;
+    const printContents = invoiceElement?.outerHTML || '<p>Error: Invoice not found</p>';
     const originalContents = document.body.innerHTML;
   
     document.body.innerHTML = printContents;
@@ -58,6 +53,7 @@ const BookingInvoice = ({ booking }: BookingInvoiceProps) => {
     document.body.innerHTML = originalContents; // Restore original content
     window.location.reload(); // Optional: Reset state after printing
   };
+
   if (!profile) return <div>Loading...</div>;
 
   return (

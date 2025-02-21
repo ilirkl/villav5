@@ -4,9 +4,7 @@
       size: A4;
   }
 
- 
-
-  .printRoot * {
+   .printRoot * {
       visibility: hidden;
       background: white !important;
   }
