@@ -1,11 +1,85 @@
-/* Default styles for screen */
+@media print {
+  @page {
+      margin: 15mm;
+      size: A4;
+  }
+
+  .printRoot * {
+      visibility: hidden;
+  }
+
+  .invoice,
+  .invoice * {
+      visibility: visible !important;
+  }
+
+  .invoice {
+      position: fixed;
+      left: 0;
+      top: 0;
+      width: 100%;
+      padding: 0 !important;
+      margin: 0 !important;
+      background: none !important;
+  }
+
+  .noPrint {
+      display: none !important;
+  }
+
+  .logo {
+      margin-bottom: 0.5rem !important;
+  }
+
+  .logo img {
+      height: 60px !important;
+      width: auto !important;
+  }
+
+  .header {
+      padding-bottom: 1rem !important;
+      margin-bottom: 1rem !important;
+  }
+
+  .section {
+      margin-bottom: 1rem !important;
+  }
+
+  .dateBox {
+      padding: 0.5rem !important;
+      margin-bottom: 1rem !important;
+  }
+
+  .paymentSection {
+      padding-top: 1rem !important;
+      margin-top: 1rem !important;
+  }
+
+  .footer {
+      padding-top: 1rem !important;
+      margin-top: 1rem !important;
+  }
+
+  .companyInfo {
+      font-size: 0.75rem !important;
+      line-height: 1.2 !important;
+  }
+
+  .sectionTitle {
+      font-size: 1rem !important;
+      margin-bottom: 0.5rem !important;
+  }
+
+  .totalAmount {
+      font-size: 1.25rem !important;
+  }
+}
+
 .invoice {
   background-color: white;
   padding: 1.5rem;
   max-width: 48rem;
   margin: 0 auto;
-  font-family: Arial, sans-serif;
-  color: #111827;
 }
 
 .printButton {
@@ -15,8 +89,6 @@
   color: white;
   border-radius: 0.5rem;
   transition: background-color 0.2s;
-  font-family: Arial, sans-serif;
-  font-size: 0.875rem;
 }
 
 .printButton:hover {
@@ -44,22 +116,6 @@
   font-size: 0.875rem;
   color: #4b5563;
   text-align: center;
-  font-family: Arial, sans-serif;
-}
-
-.companyInfo p {
-  margin: 0.25rem 0;
-  color: #4b5563;
-  font-size: 0.875rem;
-}
-
-.companyInfo a {
-  color: #FF385C;
-  text-decoration: none;
-}
-
-.companyInfo a:hover {
-  text-decoration: underline;
 }
 
 .section {
@@ -71,7 +127,6 @@
   font-weight: 600;
   color: #111827;
   margin-bottom: 0.75rem;
-  font-family: Arial, sans-serif;
 }
 
 .dateBox {
@@ -83,70 +138,16 @@
   gap: 1rem;
 }
 
-.dateBox p {
-  margin: 0;
-  font-family: Arial, sans-serif;
-}
-
-.dateBox p:first-child {
-  color: #6b7280;
-  font-size: 0.875rem;
-}
-
-.dateBox p:last-child {
-  color: #111827;
-  font-weight: 500;
-}
-
 .paymentSection {
   border-top: 1px solid #e5e7eb;
   padding-top: 1.5rem;
   margin-top: 2rem;
 }
 
-.paymentSection .space-y-2 {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.paymentSection .flex {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  width: 100%;
-}
-
-.paymentSection span {
-  color: #6b7280;
-  font-family: Arial, sans-serif;
-  font-size: 1rem;
-}
-
 .totalAmount {
   font-size: 1.5rem;
   font-weight: bold;
   color: #111827;
-  font-family: Arial, sans-serif;
-}
-
-.paymentSection .text-right {
-  text-align: right;
-  display: block;
-}
-
-.paymentSection .text-right .block {
-  font-weight: 500;
-  color: #111827;
-  font-size: 1rem;
-  display: block;
-}
-
-.paymentSection .text-right .text-xs {
-  color: #6b7280;
-  font-size: 0.75rem;
-  display: block;
-  margin-top: 0.25rem;
 }
 
 .footer {
@@ -156,89 +157,4 @@
   border-top: 1px solid #e5e7eb;
   padding-top: 1.5rem;
   margin-top: 2rem;
-  font-family: Arial, sans-serif;
-}
-
-.footer p {
-  margin: 0.25rem 0;
-  color: #6b7280;
-  font-size: 0.875rem;
-}
-
-.section .space-y-1 .flex {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  width: 100%;
-}
-
-.section .space-y-1 .flex span {
-  font-family: Arial, sans-serif;
-}
-
-.section .space-y-1 .flex .w-32 {
-  color: #6b7280;
-  font-size: 1rem;
-}
-
-.section .space-y-1 .flex .font-medium {
-  color: #111827;
-  font-weight: 500;
-  font-size: 1rem;
-}
-
-/* Print-specific styles */
-@media print {
-  @page {
-    margin: 15mm;
-  }
-  .invoice {
-    padding: 1.5rem;
-    max-width: 48rem;
-    margin: 0 auto;
-    box-sizing: border-box;
-    background: white;
-    position: relative;
-    width: 100%;
-    break-inside: avoid;
-    page-break-after: always;
-  }
-  .invoice body {
-    margin: 0;
-    padding: 0;
-  }
-  .noPrint {
-    display: none !important;
-  }
-  .logo img {
-    height: 60px !important;
-    width: auto !important;
-  }
-  /* Ensure flex layout and new line for "(ne check-in)" in print */
-  .paymentSection .flex {
-    display: flex !important;
-    justify-content: space-between !important;
-    align-items: flex-start !important; /* Align items at the top to allow vertical stacking */
-  }
-  .paymentSection .space-y-2 {
-    display: flex !important;
-    flex-direction: column !important;
-    gap: 0.5rem !important;
-  }
-  .paymentSection .text-right {
-    display: block !important;
-    text-align: right !important;
-  }
-  .paymentSection .text-right .block {
-    display: block !important;
-    font-weight: 500 !important;
-    color: #111827 !important;
-    font-size: 1rem !important;
-  }
-  .paymentSection .text-right .text-xs {
-    display: block !important;
-    color: #6b7280 !important;
-    font-size: 0.75rem !important;
-    margin-top: 0.25rem !important; /* Ensure spacing above "(ne check-in)" */
-  }
 }
