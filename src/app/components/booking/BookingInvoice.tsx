@@ -43,19 +43,7 @@ const BookingInvoice = ({ booking }: BookingInvoiceProps) => {
     };
     fetchProfile();
 
-    // Load Eruda for debugging
-    const script = document.createElement('script');
-    script.src = 'https://cdn.jsdelivr.net/npm/eruda';
-    script.onload = () => {
-      // @ts-expect-error - TypeScript may not recognize `eruda` as it’s dynamically loaded
-      if (typeof eruda !== 'undefined') eruda.init();
-    };
-    document.head.appendChild(script);
-
-    return () => {
-      document.head.removeChild(script); // Clean up on unmount
-    };
-}, []);
+   }, []);
   
   const handlePrint = () => {
     const printWindow = window.open('', '_blank', 'width=800,height=600');
