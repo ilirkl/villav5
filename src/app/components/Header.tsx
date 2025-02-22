@@ -29,8 +29,8 @@ const Header = () => {
                 src={logoUrl}
                 alt="Company Logo"
                 width={200}
-                height={80}
-                className="h-20 w-auto"
+                height={55}
+                className="h-12 w-auto"
               />
             ) : (
               <span className="text-2xl font-bold text-gray-900">Logo</span>

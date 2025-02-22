@@ -33,14 +33,16 @@
   display: flex;
   justify-content: center;
   margin-bottom: 0.8rem; /* Reduced from 1rem */
-  width: 350px;
-  height: 200px;
+  width: 50%;
+  height: 50%;
   
 }
 
 .logo img {
-  height: 100%; /* Reduced from 60px for screen */
-  width: 100%; /* Maintain aspect ratio */
+  display: flex;
+  justify-content: center;
+  height: 50%; /* Reduced from 60px for screen */
+  width: 50%; /* Maintain aspect ratio */
   
 }
 
@@ -217,7 +219,9 @@
   }
   
   .logo img {
-    height: 40px !important; /* Further reduced from 50px for print */
+    display: flex;
+  justify-content: center;
+    height: auto !important; /* Further reduced from 50px for print */
     width: auto !important;
   }
   

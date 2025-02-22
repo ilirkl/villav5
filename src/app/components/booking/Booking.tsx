@@ -5,6 +5,7 @@ import { supabase } from '../../../utils/supabaseClient';
 import Modal from '../Modal';
 import BookingForm from '../booking/BookingForm';
 import BookingInvoice from './BookingInvoice';
+import { FiFilter, FiArrowUp, FiArrowDown } from 'react-icons/fi'; // Import sort icons (Corrected import)
 
 export interface Booking {
     id: number;
@@ -90,7 +91,7 @@ const Booking = () => {
 
     const handleBookingSuccess = async (newBooking: Omit<Booking, 'id'>) => {
         // For existing bookings, we exclude the current booking when checking for overlaps
-        const otherBookings = modalMode === 'edit' && selectedBooking 
+        const otherBookings = modalMode === 'edit' && selectedBooking
             ? bookings.filter(b => b.id !== selectedBooking.id)
             : bookings;
 
@@ -126,7 +127,7 @@ const Booking = () => {
 
     const handleDelete = async (bookingId: number) => {
         if (!confirm('Are you sure you want to delete this booking?')) return;
-        
+
         try {
             const { error } = await supabase
                 .from('bookings')
@@ -161,15 +162,30 @@ const Booking = () => {
         } else {
             // If clicking a different sort option, set it with ascending order
             setSortBy(newSortBy);
-            setSortOrder('desc');
+            setSortOrder('desc'); // Default to desc order for new sort
         }
     };
 
     return (
         <div className="max-w-6xl mx-auto px-4 py-8">
             {/* Filter and Sort UI */}
-            <div className="mb-6 flex flex-wrap gap-4 items-center">
+            <div className="mb-6 flex flex-col sm:flex-row flex-wrap gap-4 items-center justify-between">
+
+                
+
+
                 <div className="flex items-center gap-2">
+
+                <button
+                        onClick={() => handleSort('date')}
+                        className={`p-2 rounded hover:bg-gray-100 transition-colors ${sortBy === 'date' ? 'bg-gray-100' : ''}`}
+                        title="Sort by Date"
+                    >
+                        Data
+                        {sortBy === 'date' && sortOrder === 'asc' && <FiArrowUp className="inline ml-1" />}
+                        {sortBy === 'date' && sortOrder === 'desc' && <FiArrowDown className="inline ml-1" />}
+                        {sortBy !== 'date' && <FiFilter className="inline ml-1" />}
+                    </button>
                     <input
                         type="date"
                         value={startDate}
@@ -185,21 +201,7 @@ const Booking = () => {
                         placeholder="End Date"
                     />
                 </div>
-                <div className="flex gap-2">
-                    <button
-                        onClick={() => handleSort('date')}
-                        className={`px-3 py-1 rounded ${sortBy === 'date' ? 'bg-[#FF385C] text-white' : 'bg-gray-100'}`}
-                    >
-                        Data {sortBy === 'date' && (sortOrder === 'asc' ? '↑' : '↓')}
-                    </button>
-                    <button
-                        onClick={() => handleSort('name')}
-                        className={`px-3 py-1 rounded ${sortBy === 'name' ? 'bg-[#FF385C] text-white' : 'bg-gray-100'}`}
-                    >
-                        Emri {sortBy === 'name' && (sortOrder === 'asc' ? '↑' : '↓')}
-                    </button>
-                   
-                </div>
+
             </div>
             {/* Add Booking Button */}
             <button
@@ -219,7 +221,7 @@ const Booking = () => {
                     </div>
                 ) : (
                     bookings.map((booking) => (
-                        <div 
+                        <div
                             key={booking.id}
                             className="border border-gray-200 rounded-xl p-6 hover:border-[#FF385C]/30 transition-colors bg-white shadow-sm"
                         >
@@ -238,7 +240,7 @@ const Booking = () => {
                                     </div>
 
                                     <div className="flex flex-wrap items-center gap-2 text-sm">
-                                       
+
                                         <div className="flex items-center gap-2 text-gray-500">
                                             <span className="hidden sm:inline">•</span>
                                             <a href={`tel:${booking.guest_phone}`} className="hover:text-[#FF385C] transition-colors">

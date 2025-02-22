@@ -61,27 +61,32 @@ const BookingInvoice = ({ booking }: BookingInvoiceProps) => {
     // Add logo (try to add only if it’s a supported format like PNG or JPEG)
     if (profile?.logo_url) {
       try {
-        // Check if the URL ends with a supported format (PNG or JPEG)
-        const isSupportedFormat = profile.logo_url.toLowerCase().endsWith('.png') || 
-                                 profile.logo_url.toLowerCase().endsWith('.jpg') || 
-                                 profile.logo_url.toLowerCase().endsWith('.jpeg');
+          // Check if the URL ends with a supported format (PNG, JPEG, or WebP)
+          const isSupportedFormat = profile.logo_url.toLowerCase().endsWith('.png') ||
+                                      profile.logo_url.toLowerCase().endsWith('.jpg') ||
+                                      profile.logo_url.toLowerCase().endsWith('.jpeg') ||
+                                      profile.logo_url.toLowerCase().endsWith('.webp'); // Added .webp check
 
-        if (isSupportedFormat) {
-          doc.addImage(profile.logo_url, 'PNG', 80, y, 50, 30); // Reduced size: 40mm width, 16mm height
-          y += 35; // Add space after logo
-        } else {
-          console.warn('Logo format not supported (SVG detected). Skipping logo in PDF.');
-          // Optionally, you can add text or a placeholder instead of the logo
-          doc.text('', 10, y);
-          y += 10;
-        }
+          if (isSupportedFormat) {
+              let imageFormat = 'PNG'; // Default format
+              if (profile.logo_url.toLowerCase().endsWith('.jpg') || profile.logo_url.toLowerCase().endsWith('.jpeg')) {
+                  imageFormat = 'JPEG';
+              } else if (profile.logo_url.toLowerCase().endsWith('.webp')) {
+                  imageFormat = 'WEBP'; // Use 'WEBP' format if extension is .webp
+              }
+              doc.addImage(profile.logo_url, imageFormat, 70, y, 0, 0);
+              y += 35;
+          } else {
+              console.warn('Logo format not supported (SVG or other). Skipping logo in PDF.');
+              doc.text('', 10, y);
+              y += 10;
+          }
       } catch (error) {
-        console.error('Error adding logo to PDF:', error);
-        // Skip the logo and continue with the rest of the PDF
-        doc.text('Logo Unavailable', 10, y);
-        y += 10;
+          console.error('Error adding logo to PDF:', error);
+          doc.text('Logo Unavailable', 10, y);
+          y += 10;
       }
-    }
+  }
 
     // Centered company details
 doc.setFontSize(12);
@@ -97,7 +102,7 @@ doc.text(`Email: ${profile?.email || ''}`, 105, y, { align: 'center' });
 y += 5;
 if (profile?.instagram) {
   doc.setTextColor(255, 56, 92);
-  doc.text(profile.instagram, 105, y, { align: 'center' });
+  doc.text(`Instagram: ${profile.instagram || ''}`, 105, y, { align: 'center' });
   y += 5;
 }
 doc.setTextColor(0);
@@ -209,8 +214,8 @@ doc.text('Me kënaqësi ju mirëpresim', 105, 192, { align: 'center' });
               <Image
                 src={profile.logo_url}
                 alt={`${profile.company_name} Logo`}
-                width={120} // Default size for display
-                height={48}
+                width={400} // Default size for display
+                height={65}
                 priority
                 style={{ objectFit: 'contain' }}
               />
