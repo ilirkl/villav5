@@ -220,7 +220,7 @@
   
   .logo img {
     display: flex;
-  justify-content: center;
+    justify-content: center;
     height: auto !important; /* Further reduced from 50px for print */
     width: auto !important;
   }
