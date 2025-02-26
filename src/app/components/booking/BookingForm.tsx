@@ -139,7 +139,7 @@ const BookingForm = ({ onSuccess, onCancel, booking, mode }: BookingFormProps) =
         
         setIsSubmitting(true);
         try {
-            const bookingData: Omit<Booking, 'id'> = {
+            const bookingData: Omit<Booking, 'id' > = {
                 start_date: newBooking.start_date,
                 end_date: newBooking.end_date,
                 guest_name: newBooking.guest_name,
