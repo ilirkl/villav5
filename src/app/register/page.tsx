@@ -4,30 +4,43 @@ import React, { useState } from 'react';
 import { supabase } from '../../utils/supabaseClient';
 import Link from 'next/link';
 
-export default function LoginPage() {
+export default function SignUpPage() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
-    const handleLogin = async (e: React.FormEvent) => {
+    const handleSignUp = async (e: React.FormEvent) => {
         e.preventDefault();
         setLoading(true);
         setError(null);
 
+        console.log('Starting signup process', { email, password: '[REDACTED]' });
+
         try {
-            const { error } = await supabase.auth.signInWithPassword({
+            console.log('Calling supabase.auth.signUp with:', { email });
+            const { data, error } = await supabase.auth.signUp({
                 email,
                 password,
             });
 
-            if (error) throw error;
+            console.log('Signup response:', { data, error });
 
-            // Refresh the page to trigger the middleware
-            window.location.href = '/';
+            if (error) {
+                console.error('Signup error:', error.message, error);
+                throw error;
+            }
+
+            console.log('Signup successful, user data:', data.user);
+            
+            // Redirect to login page after successful signup
+            window.location.href = '/login';
         } catch (error) {
-            setError(error instanceof Error ? error.message : 'An error occurred during login');
+            const errorMessage = error instanceof Error ? error.message : 'An error occurred during sign up';
+            console.error('Caught error in signup:', errorMessage, error);
+            setError(errorMessage);
         } finally {
+            console.log('Signup process completed, loading set to false');
             setLoading(false);
         }
     };
@@ -37,10 +50,10 @@ export default function LoginPage() {
             <div className="max-w-md w-full space-y-8">
                 <div>
                     <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-                        Hyr ne Llogari
+                        Krijo Llogari
                     </h2>
                 </div>
-                <form className="mt-8 space-y-6" onSubmit={handleLogin}>
+                <form className="mt-8 space-y-6" onSubmit={handleSignUp}>
                     {error && (
                         <div className="rounded-md bg-red-50 p-4">
                             <div className="text-sm text-red-700">{error}</div>
@@ -71,7 +84,7 @@ export default function LoginPage() {
                                 id="password"
                                 name="password"
                                 type="password"
-                                autoComplete="current-password"
+                                autoComplete="new-password"
                                 required
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
@@ -87,13 +100,13 @@ export default function LoginPage() {
                             disabled={loading}
                             className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-[#FF385C] hover:bg-[#FF385C]/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#FF385C]"
                         >
-                            {loading ? 'Signing in...' : 'Hyr'}
+                            {loading ? 'Creating account...' : 'Regjistrohu'}
                         </button>
                     </div>
-
+                    
                     <div className="text-sm text-center">
-                        <Link href="/register" className="font-medium text-[#FF385C] hover:text-[#FF385C]/90">
-                            Nuk keni llogari? Regjistrohuni këtu
+                        <Link href="/login" className="font-medium text-[#FF385C] hover:text-[#FF385C]/90">
+                            Keni llogari? Hyni këtu
                         </Link>
                     </div>
                 </form>

@@ -15,7 +15,7 @@ export default function RootLayout({
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const pathname = usePathname();
-  const isLoginPage = pathname === '/login';
+  const isAuthPage = pathname === '/login' || pathname === '/register';
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -23,14 +23,14 @@ export default function RootLayout({
         const { data: { session } } = await supabase.auth.getSession();
         setIsAuthenticated(!!session);
         
-        // If not authenticated and not on login page, redirect to login
-        if (!session && !isLoginPage) {
+        // If not authenticated and not on auth pages, redirect to login
+        if (!session && !isAuthPage) {
           window.location.href = '/login';
           return;
         }
         
-        // If authenticated and on login page, redirect to home
-        if (session && isLoginPage) {
+        // If authenticated and on auth pages, redirect to home
+        if (session && isAuthPage) {
           window.location.href = '/';
           return;
         }
@@ -47,9 +47,9 @@ export default function RootLayout({
       setIsAuthenticated(!!session);
       
       // Handle auth state changes
-      if (!session && !isLoginPage) {
+      if (!session && !isAuthPage) {
         window.location.href = '/login';
-      } else if (session && isLoginPage) {
+      } else if (session && isAuthPage) {
         window.location.href = '/';
       }
     });
@@ -57,7 +57,7 @@ export default function RootLayout({
     return () => {
       subscription.unsubscribe();
     };
-  }, [isLoginPage]);
+  }, [isAuthPage]);
 
   // Show loading state while checking authentication
   if (isLoading) {
@@ -72,26 +72,26 @@ export default function RootLayout({
     );
   }
 
-  // If not authenticated and not on login page, don't render anything while redirecting
-  if (!isAuthenticated && !isLoginPage) {
+  // If not authenticated and not on auth pages, don't render anything while redirecting
+  if (!isAuthenticated && !isAuthPage) {
     return null;
   }
 
-  // If authenticated and on login page, don't render anything while redirecting
-  if (isAuthenticated && isLoginPage) {
+  // If authenticated and on auth pages, don't render anything while redirecting
+  if (isAuthenticated && isAuthPage) {
     return null;
   }
 
   return (
     <html lang="en">
       <body>
-        {!isLoginPage && isAuthenticated && <Header />}
-        <div className={`min-h-screen bg-gray-50 ${!isLoginPage && isAuthenticated ? 'pb-20' : ''}`}>
-          <main className={`${!isLoginPage && isAuthenticated ? 'max-w-7xl mx-auto pl-1 sm:px-6 lg:px-8 py-1' : ''}`}>
+        {!isAuthPage && isAuthenticated && <Header />}
+        <div className={`min-h-screen bg-gray-50 ${!isAuthPage && isAuthenticated ? 'pb-20' : ''}`}>
+          <main className={`${!isAuthPage && isAuthenticated ? 'max-w-7xl mx-auto pl-1 sm:px-6 lg:px-8 py-1' : ''}`}>
             {children}
           </main>
         </div>
-        {!isLoginPage && isAuthenticated && <Navbar />}
+        {!isAuthPage && isAuthenticated && <Navbar />}
       </body>
     </html>
   );

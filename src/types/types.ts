@@ -7,6 +7,7 @@ export interface Booking {
     amount: number;
     prepayment: number;
     notes: string;
+    user_id: number;
 }
 
 export interface SeasonalPricing {
@@ -21,4 +22,28 @@ export interface SeasonalPricing {
     saturday_price: number;
     sunday_price: number;
     created_at: string;
+    user_id: number;
 }
+
+export interface expenses {
+    id: number;
+    date: string;
+    end_date: string;
+    description: string;
+    amount: number;
+    cateogry: string;
+    created_at: string;
+    user_id: number;
+}
+
+export interface profiles {
+    id: number;
+    created_at: string;
+    updated_at: string;
+    company_name: string;
+    phone_number: string;
+    email: string;
+    address: string;
+    instagram: string;
+    logo_url: string;
+    }

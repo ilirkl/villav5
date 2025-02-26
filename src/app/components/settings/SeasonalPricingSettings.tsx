@@ -7,7 +7,7 @@ import { Session } from '@supabase/supabase-js';
 
 const SeasonalPricingSettings = () => {
     const [seasonalPricings, setSeasonalPricings] = useState<SeasonalPricing[]>([]);
-    const [newPricing, setNewPricing] = useState<Omit<SeasonalPricing, 'id' | 'created_at'>>({
+    const [newPricing, setNewPricing] = useState<Omit<SeasonalPricing, 'id' | 'created_at' | 'user_id'>>({
         start_date: '',
         end_date: '',
         monday_price: 0,

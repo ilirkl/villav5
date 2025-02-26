@@ -106,10 +106,7 @@ const BookingForm = ({ onSuccess, onCancel, booking, mode }: BookingFormProps) =
             alert('Please enter a guest name');
             return false;
         }
-        if (!newBooking.guest_phone.trim()) {
-            alert('Please enter a guest phone');
-            return false;
-        }
+       
         if (!newBooking.start_date) {
             alert('Please select a check-in date');
             return false;
