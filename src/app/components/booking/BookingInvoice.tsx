@@ -68,15 +68,15 @@ const BookingInvoice = ({ booking }: BookingInvoiceProps) => {
     if (profile?.logo_url) {
       try {
         const isSupportedFormat = profile.logo_url.toLowerCase().endsWith('.png') ||
-          profile.logo_url.toLowerCase().endsWith('.jpg') ||
-          profile.logo_url.toLowerCase().endsWith('.jpeg') ||
-          profile.logo_url.toLowerCase().endsWith('.webp');
+            profile.logo_url.toLowerCase().endsWith('.jpg') ||
+            profile.logo_url.toLowerCase().endsWith('.jpeg') ||
+            profile.logo_url.toLowerCase().endsWith('.webp');
         if (isSupportedFormat) {
-          let imageFormat = profile.logo_url.toLowerCase().endsWith('.jpg') || 
-                           profile.logo_url.toLowerCase().endsWith('.jpeg') ? 'JPEG' : 
-                           profile.logo_url.toLowerCase().endsWith('.webp') ? 'WEBP' : 'PNG';
-          doc.addImage(profile.logo_url, imageFormat, 70, y, 0, 0);
-          y += 35;
+            const imageFormat = profile.logo_url.toLowerCase().endsWith('.jpg') ||
+                profile.logo_url.toLowerCase().endsWith('.jpeg') ? 'JPEG' :
+                profile.logo_url.toLowerCase().endsWith('.webp') ? 'WEBP' : 'PNG';
+            doc.addImage(profile.logo_url, imageFormat, 70, y, 0, 0);
+            y += 35;
         }
       } catch (error) {
         console.error('Error adding logo to PDF:', error);

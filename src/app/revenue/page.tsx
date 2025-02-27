@@ -77,9 +77,7 @@ export default function RevenuePage() {
         endDate
       );
       setFinancialData(processedData);
-    } catch (error) {
-      // Error handling without logging
-    } finally {
+    }  finally {
       setIsLoading(false);
     }
   }, [startDate, endDate]);

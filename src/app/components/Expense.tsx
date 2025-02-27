@@ -38,7 +38,7 @@ const formatDate = (dateString: string) => {
     });
 };
 
-const Expense = () => {
+const Expenses = () => {
     const [expenses, setExpenses] = useState<Expense[]>([]);
     const [expandedExpenseId, setExpandedExpenseId] = useState<string | null>(null);
     const [offset, setOffset] = useState(0);
@@ -57,19 +57,32 @@ const Expense = () => {
 
     const fetchCategories = async () => {
         try {
-            const { data } = await supabase
+            const { data, error } = await supabase
                 .from('expenses')
                 .select('category')
                 .not('category', 'is', null)
                 .order('category', { ascending: true });
-
-            const uniqueCategories = Array.from(new Set(data.map(item => item.category)));
-            setCategories(uniqueCategories);
-        } catch {
+    
+            if (error) {
+                console.error("Error fetching categories:", error);
+                alert('Error fetching categories. Please try again.');
+                return; // Exit the function if there's an error
+            }
+    
+            // Check if data is null or not an array before proceeding
+            if (data && Array.isArray(data)) {
+                const uniqueCategories = Array.from(new Set(data.map(item => item.category)));
+                setCategories(uniqueCategories);
+            } else {
+                // Handle the case where data is null or not an array
+                console.error("Unexpected data format:", data);
+                alert('Error fetching categories. Please try again.');
+            }
+        } catch (error) {
+            console.error("Error fetching categories:", error);
             alert('Error fetching categories. Please try again.');
         }
     };
-
     const fetchExpenses = useCallback(async (reset = false) => {
         if (!hasMore || isLoading) return;
 
@@ -329,4 +342,4 @@ const Expense = () => {
     );
 };
 
-export default Expense;
+export default Expenses;

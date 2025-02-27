@@ -1,9 +1,9 @@
 export interface Booking {
-    id: number;
+    id: string;
     start_date: string;
     end_date: string;
-    checkin_time: string; 
-    checkout_time: string; 
+    checkin_time?: string; 
+    checkout_time?: string; 
     guest_name: string;
     guest_phone: string;
     amount: number;
@@ -26,13 +26,13 @@ export interface SeasonalPricing {
 }
 
 export interface expenses {
-    id: number;
+    id: string;
     date: string;
-    end_date: string;
     description: string;
     amount: number;
-    cateogry: string;
+    category: string;
     created_at: string;
+    user_id: string;
 }
 
 export interface profiles {

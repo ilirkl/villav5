@@ -14,7 +14,7 @@ interface BookingFormProps {
 const BookingForm = ({ onSuccess, onCancel, booking, mode }: BookingFormProps) => {
     // Initialize state with checkin_time and checkout_time
     const [newBooking, setNewBooking] = useState<Booking>({
-        id: 0,
+        id: '',
         start_date: '',
         end_date: '',
         checkin_time: '',
@@ -142,8 +142,8 @@ const BookingForm = ({ onSuccess, onCancel, booking, mode }: BookingFormProps) =
             const bookingData: Omit<Booking, 'id'> = {
                 start_date: newBooking.start_date,
                 end_date: newBooking.end_date,
-                checkin_time: newBooking.checkin_time || null,
-                checkout_time: newBooking.checkout_time || null,
+                checkin_time: newBooking.checkin_time ?? undefined, // Use ?? instead of ||
+                checkout_time: newBooking.checkout_time ?? undefined, // Use ?? instead of ||
                 guest_name: newBooking.guest_name,
                 guest_phone: newBooking.guest_phone,
                 amount: newBooking.amount,
