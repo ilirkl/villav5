@@ -2,8 +2,10 @@ export interface Booking {
     id: number;
     start_date: string;
     end_date: string;
+    checkin_time: string; 
+    checkout_time: string; 
     guest_name: string;
-   guest_phone: string;
+    guest_phone: string;
     amount: number;
     prepayment: number;
     notes: string;

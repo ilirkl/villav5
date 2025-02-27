@@ -123,11 +123,11 @@ const ProfileSettings = () => {
 
   return (
      <div className="bg-white rounded-lg shadow p-6">
-       <h2 className="text-xl font-medium text-gray-900 mb-4">Profile Settings</h2>
+       <h2 className="text-xl font-medium text-gray-900 mb-4">Profili</h2>
         <form onSubmit={handleSubmit} className="space-y-4">
          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
            <div>
-             <label className="block text-sm font-medium text-gray-700">Company/Villa Name</label>
+             <label className="block text-sm font-medium text-gray-700">Emri</label>
              <input
               type="text"
                value={profile.company_name}
@@ -137,7 +137,7 @@ const ProfileSettings = () => {
               />
           </div>
            <div>
-           <label className="block text-sm font-medium text-gray-700">Phone Number</label>
+           <label className="block text-sm font-medium text-gray-700">Numri Telefonit</label>
             <input
                type="tel"
                value={profile.phone_number}
@@ -157,7 +157,7 @@ const ProfileSettings = () => {
                />
             </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700">Address</label>
+            <label className="block text-sm font-medium text-gray-700">Adresa</label>
               <input
               type="text"
               value={profile.address}
@@ -193,7 +193,7 @@ const ProfileSettings = () => {
            disabled={isLoading}
           className="px-6 py-3 bg-[#FF385C] text-white rounded-lg hover:bg-[#FF385C]/90 disabled:opacity-50"
        >
-           {isLoading ? 'Saving...' : 'Save Profile'}
+           {isLoading ? 'Saving...' : 'Ruaj'}
           </button>
         </form>
       </div>

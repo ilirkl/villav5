@@ -31,15 +31,25 @@ const formatDate = (dateString: string) => {
 
 const BookingInvoice = ({ booking }: BookingInvoiceProps) => {
   const [profile, setProfile] = useState<ProfileData | null>(null);
+  const [loading, setLoading] = useState(true);
   const remainingAmount = booking.amount - booking.prepayment;
 
   useEffect(() => {
     const fetchProfile = async () => {
-      const { data } = await supabase
-        .from('company_profile')
-        .select('*')
-        .single();
-      setProfile(data);
+      setLoading(true);
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('user_id', user.id)
+          .single();
+        if (error) {
+          console.error('Error fetching profile:', error);
+        }
+        setProfile(data);
+      }
+      setLoading(false);
     };
     fetchProfile();
   }, []);
@@ -48,165 +58,139 @@ const BookingInvoice = ({ booking }: BookingInvoiceProps) => {
     const doc = new jsPDF({
       orientation: 'portrait',
       unit: 'mm',
-      format: 'a4', // A4 size: 210mm x 297mm
+      format: 'a4',
     });
 
-    // Set font size and style for the document
-    doc.setFontSize(10); // Default font size for readability
+    doc.setFontSize(10);
     doc.setFont('helvetica', 'normal');
-
-    // Starting position (y-coordinate)
     let y = 10;
 
-    // Add logo (try to add only if it’s a supported format like PNG or JPEG)
     if (profile?.logo_url) {
       try {
-          // Check if the URL ends with a supported format (PNG, JPEG, or WebP)
-          const isSupportedFormat = profile.logo_url.toLowerCase().endsWith('.png') ||
-                                      profile.logo_url.toLowerCase().endsWith('.jpg') ||
-                                      profile.logo_url.toLowerCase().endsWith('.jpeg') ||
-                                      profile.logo_url.toLowerCase().endsWith('.webp'); // Added .webp check
-
-          if (isSupportedFormat) {
-              let imageFormat = 'PNG'; // Default format
-              if (profile.logo_url.toLowerCase().endsWith('.jpg') || profile.logo_url.toLowerCase().endsWith('.jpeg')) {
-                  imageFormat = 'JPEG';
-              } else if (profile.logo_url.toLowerCase().endsWith('.webp')) {
-                  imageFormat = 'WEBP'; // Use 'WEBP' format if extension is .webp
-              }
-              doc.addImage(profile.logo_url, imageFormat, 70, y, 0, 0);
-              y += 35;
-          } else {
-              console.warn('Logo format not supported (SVG or other). Skipping logo in PDF.');
-              doc.text('', 10, y);
-              y += 10;
-          }
+        const isSupportedFormat = profile.logo_url.toLowerCase().endsWith('.png') ||
+          profile.logo_url.toLowerCase().endsWith('.jpg') ||
+          profile.logo_url.toLowerCase().endsWith('.jpeg') ||
+          profile.logo_url.toLowerCase().endsWith('.webp');
+        if (isSupportedFormat) {
+          let imageFormat = profile.logo_url.toLowerCase().endsWith('.jpg') || 
+                           profile.logo_url.toLowerCase().endsWith('.jpeg') ? 'JPEG' : 
+                           profile.logo_url.toLowerCase().endsWith('.webp') ? 'WEBP' : 'PNG';
+          doc.addImage(profile.logo_url, imageFormat, 70, y, 0, 0);
+          y += 35;
+        }
       } catch (error) {
-          console.error('Error adding logo to PDF:', error);
-          doc.text('Logo Unavailable', 10, y);
-          y += 10;
+        console.error('Error adding logo to PDF:', error);
+        doc.text('Logo Unavailable', 10, y);
+        y += 10;
       }
-  }
+    }
 
-    // Centered company details
-doc.setFontSize(12);
-doc.text(profile?.company_name || '', 105, y, { align: 'center' });
-y += 5;
-doc.setFontSize(10);
-doc.setTextColor(100);
-doc.text(profile?.address || '', 105, y, { align: 'center' });
-y += 5;
-doc.text(`Tel: ${profile?.phone_number || ''}`, 105, y, { align: 'center' });
-y += 5;
-doc.text(`Email: ${profile?.email || ''}`, 105, y, { align: 'center' });
-y += 5;
-if (profile?.instagram) {
-  doc.setTextColor(255, 56, 92);
-  doc.text(`Instagram: ${profile.instagram || ''}`, 105, y, { align: 'center' });
-  y += 5;
-}
-doc.setTextColor(0);
-y += 10;
+    doc.setFontSize(12);
+    doc.text(profile?.company_name || '', 105, y, { align: 'center' });
+    y += 5;
+    doc.setFontSize(10);
+    doc.setTextColor(100);
+    doc.text(profile?.address || '', 105, y, { align: 'center' });
+    y += 5;
+    doc.text(`Tel: ${profile?.phone_number || ''}`, 105, y, { align: 'center' });
+    y += 5;
+    doc.text(`Email: ${profile?.email || ''}`, 105, y, { align: 'center' });
+    y += 5;
+    if (profile?.instagram) {
+      doc.setTextColor(255, 56, 92);
+      doc.text(`Instagram: ${profile.instagram || ''}`, 105, y, { align: 'center' });
+      y += 5;
+    }
+    doc.setTextColor(0);
+    y += 10;
 
-// Draw a line for section separation
-doc.setLineWidth(0.5);
-doc.line(10, y, 200, y);
-y += 5;
+    doc.setLineWidth(0.5);
+    doc.line(10, y, 200, y);
+    y += 5;
 
-// Guest Information
-doc.setFontSize(12);
-doc.setFont('helvetica', 'bold');
-doc.text('Informacione mbi Musafirin', 10, y);
-doc.setFontSize(10);
-doc.setFont('helvetica', 'normal');
-y += 5;
-doc.text(`Emri: ${booking.guest_name}`, 10, y);
-y += 5;
-if (booking.guest_phone) {
-  doc.text(`Telefoni: ${booking.guest_phone}`, 10, y);
-  y += 5;
-}
-y += 10;
+    doc.setFontSize(12);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Informacione mbi Musafirin', 10, y);
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'normal');
+    y += 5;
+    doc.text(`Emri: ${booking.guest_name}`, 10, y);
+    y += 5;
+    if (booking.guest_phone) {
+      doc.text(`Telefoni: ${booking.guest_phone}`, 10, y);
+      y += 5;
+    }
+    y += 10;
 
-// Section Divider
-doc.setLineWidth(0.3);
-doc.line(10, y, 200, y);
-y += 5;
+    doc.setLineWidth(0.3);
+    doc.line(10, y, 200, y);
+    y += 5;
 
-// Booking Details with a table-style layout
-doc.setFontSize(12);
-doc.setFont('helvetica', 'bold');
-doc.text('Detajet e Rezervimit', 10, y);
-doc.setFontSize(10);
-doc.setFont('helvetica', 'normal');
-y += 8;
+    doc.setFontSize(12);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Detajet e Rezervimit', 10, y);
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'normal');
+    y += 8;
 
-// Light gray background for date box
-doc.setFillColor(245, 245, 245);
-doc.roundedRect(10, y, 90, 12, 3, 3, 'F');
-doc.roundedRect(110, y, 90, 12, 3, 3, 'F');
+    doc.setFillColor(245, 245, 245);
+    doc.roundedRect(10, y, 90, 12, 3, 3, 'F');
+    doc.roundedRect(110, y, 90, 12, 3, 3, 'F');
 
-doc.setFont('helvetica', 'bold');
-doc.text('Check-in', 15, y + 5);
-doc.text('Check-out', 115, y + 5);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Check-in', 15, y + 5);
+    doc.text('Check-out', 115, y + 5);
 
-doc.setFont('helvetica', 'normal');
-doc.text(`${formatDate(booking.start_date)}`, 15, y + 10);
-doc.text(`${formatDate(booking.end_date)}`, 115, y + 10);
-y += 20;
+    doc.setFont('helvetica', 'normal');
+    doc.text(`${formatDate(booking.start_date)}`, 15, y + 10);
+    doc.text(`${formatDate(booking.end_date)}`, 115, y + 10);
+    y += 20;
 
-// Payment Summary
-doc.setLineWidth(0.3);
-doc.line(10, y, 200, y);
-y += 5;
+    doc.setLineWidth(0.3);
+    doc.line(10, y, 200, y);
+    y += 5;
 
-doc.setFontSize(12);
-doc.setFont('helvetica', 'bold');
-doc.text('Permbledhje e Pagesave', 10, y);
-doc.setFontSize(10);
-doc.setFont('helvetica', 'normal');
-y += 8;
+    doc.setFontSize(12);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Permbledhje e Pagesave', 10, y);
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'normal');
+    y += 8;
 
-doc.text(`Total:`, 10, y);
-doc.text(`€${booking.amount}`, 180, y, { align: 'right' });
-y += 5;
+    doc.text(`Total:`, 10, y);
+    doc.text(`€${booking.amount}`, 180, y, { align: 'right' });
+    y += 5;
 
-doc.text(`Parapagim:`, 10, y);
-doc.text(`€${booking.prepayment}`, 180, y, { align: 'right' });
-y += 5;
+    doc.text(`Parapagim:`, 10, y);
+    doc.text(`€${booking.prepayment}`, 180, y, { align: 'right' });
+    y += 5;
 
-// Remaining balance aligned to the right
-doc.text('Për Pagesë:', 10, y);
-doc.text(`€${remainingAmount}`, 180, y, { align: 'right' });
-y += 5;
+    doc.text('Për Pagesë:', 10, y);
+    doc.text(`€${remainingAmount}`, 180, y, { align: 'right' });
+    y += 5;
 
-// "(ne check-in)" directly under the amount, aligned right
-doc.setFontSize(9);
-doc.setTextColor(120); // Light gray for secondary text
-doc.text('(ne check-in)', 180, y, { align: 'right' });
-doc.setTextColor(0); // Reset text color
-y += 10; // Extra spacing for the next section
+    doc.setFontSize(9);
+    doc.setTextColor(120);
+    doc.text('(ne check-in)', 180, y, { align: 'right' });
+    doc.setTextColor(0);
+    y += 10;
 
-// Footer
-doc.setFontSize(8);
-doc.setFont('helvetica', 'italic');
-doc.text(`Falemnderit qe zgjodhet ${profile?.company_name || ''}!`, 105, 187, { align: 'center' });
-doc.text('Me kënaqësi ju mirëpresim', 105, 192, { align: 'center' });
-    // Save the PDF
+    doc.setFontSize(8);
+    doc.setFont('helvetica', 'italic');
+    doc.text(`Falemnderit qe zgjodhet ${profile?.company_name || ''}!`, 105, 187, { align: 'center' });
+    doc.text('Me kënaqësi ju mirëpresim', 105, 192, { align: 'center' });
+
     doc.save(`${booking.guest_name}.pdf`);
   };
 
-  if (!profile) return <div>Loading...</div>;
+  if (loading) return <div>Loading...</div>;
+  if (!profile) return <div>No profile found. Please create a profile first.</div>;
 
   return (
     <div className={styles.printRoot}>
-      <button
-        onClick={handleDownloadPDF}
-        className={styles.printButton}
-      >
+      <button onClick={handleDownloadPDF} className={styles.printButton}>
         Shkarko PDF
       </button>
-
       <div className={styles.invoice}>
         <div className={styles.header}>
           <div className={styles.logo}>
@@ -214,7 +198,7 @@ doc.text('Me kënaqësi ju mirëpresim', 105, 192, { align: 'center' });
               <Image
                 src={profile.logo_url}
                 alt={`${profile.company_name} Logo`}
-                width={400} // Default size for display
+                width={400}
                 height={65}
                 priority
                 style={{ objectFit: 'contain' }}

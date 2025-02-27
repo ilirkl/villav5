@@ -78,7 +78,7 @@ export default function RevenuePage() {
       );
       setFinancialData(processedData);
     } catch (error) {
-      console.error('Error fetching financial data:', error);
+      // Error handling without logging
     } finally {
       setIsLoading(false);
     }
@@ -149,7 +149,6 @@ export default function RevenuePage() {
     startDate: string,
     endDate: string
   ): FinancialData => {
-
     const netProfit = bookings.reduce((sum, booking) => sum + booking.amount, 0);
     const totalPrepaid = bookings.reduce((sum, booking) => sum + booking.prepayment, 0);
     const totalPaid = netProfit;
@@ -225,7 +224,6 @@ export default function RevenuePage() {
         expenses: amounts.expenses
       }))
     };
-    console.log('Processed financial data:', result);
     return result;
   };
 
@@ -378,7 +376,6 @@ export default function RevenuePage() {
           Exporto CSV
         </button>
       </div>
-
 
       <div className={`bg-white rounded-lg shadow p-6 ${!tableVisible && 'hidden'}`}>
         <h2 className="text-xl font-semibold mb-4">Kesh-Flow per periudhen</h2>

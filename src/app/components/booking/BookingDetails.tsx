@@ -1,3 +1,5 @@
+import React from 'react';
+
 const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
         year: 'numeric',
@@ -14,6 +16,8 @@ interface BookingDetailsProps {
         prepayment: number;
         start_date: string;
         end_date: string;
+        checkin_time?: string;  // Added optional check-in time
+        checkout_time?: string; // Added optional check-out time
         notes?: string;
     };
 }
@@ -50,11 +54,17 @@ const BookingDetails = ({ booking }: BookingDetailsProps) => {
             <div className="border-t border-gray-200 pt-4">
                 <div className="flex justify-between items-center mb-2">
                     <span className="text-sm font-medium text-gray-500">Check-in</span>
-                    <span className="text-sm text-gray-900">{formatDate(booking.start_date)}</span>
+                    <span className="text-sm text-gray-900">
+                        {formatDate(booking.start_date)}
+                        {booking.checkin_time && ` nga ${booking.checkin_time}`}
+                    </span>
                 </div>
                 <div className="flex justify-between items-center mb-2">
                     <span className="text-sm font-medium text-gray-500">Check-out</span>
-                    <span className="text-sm text-gray-900">{formatDate(booking.end_date)}</span>
+                    <span className="text-sm text-gray-900">
+                        {formatDate(booking.end_date)}
+                        {booking.checkout_time && ` deri ne ${booking.checkout_time}`}
+                    </span>
                 </div>
             </div>
 

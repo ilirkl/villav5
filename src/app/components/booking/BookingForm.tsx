@@ -12,10 +12,13 @@ interface BookingFormProps {
 }
 
 const BookingForm = ({ onSuccess, onCancel, booking, mode }: BookingFormProps) => {
+    // Initialize state with checkin_time and checkout_time
     const [newBooking, setNewBooking] = useState<Booking>({
         id: 0,
         start_date: '',
         end_date: '',
+        checkin_time: '',
+        checkout_time: '',
         guest_name: '',
         guest_phone: '',
         amount: 0,
@@ -25,13 +28,13 @@ const BookingForm = ({ onSuccess, onCancel, booking, mode }: BookingFormProps) =
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [seasonalPricing, setSeasonalPricing] = useState<SeasonalPricing[]>([]);
 
+    // Populate form with existing booking data in edit mode
     useEffect(() => {
         if (mode === 'edit' && booking) {
-            console.log('Setting initial booking data:', booking);
             setNewBooking({
                 ...booking,
-                start_date: booking.start_date,
-                end_date: booking.end_date,
+                checkin_time: booking.checkin_time || '', // Use '' if null
+                checkout_time: booking.checkout_time || '', // Use '' if null
             });
         }
         fetchSeasonalPricing();
@@ -60,21 +63,18 @@ const BookingForm = ({ onSuccess, onCancel, booking, mode }: BookingFormProps) =
         const currentDate = new Date(start);
 
         while (currentDate < end) {
-            const dayOfWeek = currentDate.getDay(); // 0 = Sunday, 1 = Monday, etc.
+            const dayOfWeek = currentDate.getDay();
             const dateString = currentDate.toISOString().split('T')[0];
 
-            // Find applicable seasonal pricing
             const applicablePricing = seasonalPricing.find(pricing => 
                 dateString >= pricing.start_date && dateString <= pricing.end_date
             );
 
             if (applicablePricing) {
-                // Get price based on day of week
                 const dayPrice = getDayPrice(applicablePricing, dayOfWeek);
                 totalAmount += dayPrice;
             }
 
-            // Move to next day
             currentDate.setDate(currentDate.getDate() + 1);
         }
 
@@ -106,7 +106,6 @@ const BookingForm = ({ onSuccess, onCancel, booking, mode }: BookingFormProps) =
             alert('Please enter a guest name');
             return false;
         }
-       
         if (!newBooking.start_date) {
             alert('Please select a check-in date');
             return false;
@@ -136,12 +135,15 @@ const BookingForm = ({ onSuccess, onCancel, booking, mode }: BookingFormProps) =
 
     const handleSubmit = async () => {
         if (!validateForm()) return;
-        
+
         setIsSubmitting(true);
         try {
-            const bookingData: Omit<Booking, 'id' > = {
+            // Include checkin_time and checkout_time, converting '' to null
+            const bookingData: Omit<Booking, 'id'> = {
                 start_date: newBooking.start_date,
                 end_date: newBooking.end_date,
+                checkin_time: newBooking.checkin_time || null,
+                checkout_time: newBooking.checkout_time || null,
                 guest_name: newBooking.guest_name,
                 guest_phone: newBooking.guest_phone,
                 amount: newBooking.amount,
@@ -149,28 +151,20 @@ const BookingForm = ({ onSuccess, onCancel, booking, mode }: BookingFormProps) =
                 notes: newBooking.notes
             };
 
-            console.log('Submitting booking data:', bookingData);
-
             if (mode === 'edit' && booking?.id) {
-                const { error: updateError } = await supabase
+                const { error } = await supabase
                     .from('bookings')
                     .update(bookingData)
                     .eq('id', booking.id);
 
-                if (updateError) {
-                    throw updateError;
-                }
-
+                if (error) throw error;
                 console.log('Booking updated successfully');
             } else {
-                const { error: insertError } = await supabase
+                const { error } = await supabase
                     .from('bookings')
                     .insert([bookingData]);
 
-                if (insertError) {
-                    throw insertError;
-                }
-
+                if (error) throw error;
                 console.log('New booking created successfully');
             }
 
@@ -187,30 +181,30 @@ const BookingForm = ({ onSuccess, onCancel, booking, mode }: BookingFormProps) =
         <div className="space-y-4 px-4 py-3">
             <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                    <label className="block text-sm font-medium text-gray-700">Emri*</label>
+                    <label className="block text-sm font-medium text-gray-700">Guest Name*</label>
                     <input
                         type="text"
                         value={newBooking.guest_name}
                         onChange={(e) => setNewBooking({ ...newBooking, guest_name: e.target.value })}
-                        placeholder="Emri Mbiemri"
+                        placeholder="First Last"
                         className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-[#FF385C] focus:border-[#FF385C] transition-colors"
                         required
                     />
                 </div>
                 <div className="space-y-2">
-                    <label className="block text-sm font-medium text-gray-700">Telefoni</label>
+                    <label className="block text-sm font-medium text-gray-700">Phone</label>
                     <input
                         type="tel"
                         value={newBooking.guest_phone}
                         onChange={(e) => setNewBooking({ ...newBooking, guest_phone: e.target.value })}
-                        placeholder="Numri"
+                        placeholder="Phone Number"
                         className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-[#FF385C] focus:border-[#FF385C] transition-colors"
                     />
                 </div>
             </div>
             <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                    <label className="block text-sm font-medium text-gray-700">Check-in*</label>
+                    <label className="block text-sm font-medium text-gray-700">Check-in Date*</label>
                     <input
                         type="date"
                         value={newBooking.start_date}
@@ -218,9 +212,16 @@ const BookingForm = ({ onSuccess, onCancel, booking, mode }: BookingFormProps) =
                         className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-[#FF385C] focus:border-[#FF385C] transition-colors"
                         required
                     />
+                    <label className="block text-sm font-medium text-gray-700">Check-in Time</label>
+                    <input
+                        type="time"
+                        value={newBooking.checkin_time}
+                        onChange={(e) => setNewBooking({ ...newBooking, checkin_time: e.target.value })}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-[#FF385C] focus:border-[#FF385C] transition-colors"
+                    />
                 </div>
                 <div className="space-y-2">
-                    <label className="block text-sm font-medium text-gray-700">Check-out*</label>
+                    <label className="block text-sm font-medium text-gray-700">Check-out Date*</label>
                     <input
                         type="date"
                         value={newBooking.end_date}
@@ -228,16 +229,23 @@ const BookingForm = ({ onSuccess, onCancel, booking, mode }: BookingFormProps) =
                         className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-[#FF385C] focus:border-[#FF385C] transition-colors"
                         required
                     />
+                    <label className="block text-sm font-medium text-gray-700">Check-out Time</label>
+                    <input
+                        type="time"
+                        value={newBooking.checkout_time}
+                        onChange={(e) => setNewBooking({ ...newBooking, checkout_time: e.target.value })}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-[#FF385C] focus:border-[#FF385C] transition-colors"
+                    />
                 </div>
             </div>
             <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                    <label className="block text-sm font-medium text-gray-700">Total*</label>
+                    <label className="block text-sm font-medium text-gray-700">Total Amount*</label>
                     <input
                         type="number"
                         value={newBooking.amount}
                         onChange={(e) => setNewBooking({ ...newBooking, amount: Number(e.target.value) })}
-                        placeholder="Totali"
+                        placeholder="Total"
                         className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-[#FF385C] focus:border-[#FF385C] transition-colors"
                         required
                         min="0"
@@ -245,12 +253,12 @@ const BookingForm = ({ onSuccess, onCancel, booking, mode }: BookingFormProps) =
                     />
                 </div>
                 <div className="space-y-2">
-                    <label className="block text-sm font-medium text-gray-700">Parapagim</label>
+                    <label className="block text-sm font-medium text-gray-700">Prepayment</label>
                     <input
                         type="number"
                         value={newBooking.prepayment}
                         onChange={(e) => setNewBooking({ ...newBooking, prepayment: Number(e.target.value) })}
-                        placeholder="Parapagim"
+                        placeholder="Prepayment"
                         className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-[#FF385C] focus:border-[#FF385C] transition-colors"
                         min="0"
                         max={newBooking.amount}
@@ -259,11 +267,11 @@ const BookingForm = ({ onSuccess, onCancel, booking, mode }: BookingFormProps) =
                 </div>
             </div>
             <div className="space-y-2">
-                <label className="block text-sm font-medium text-gray-700">Shenime</label>
+                <label className="block text-sm font-medium text-gray-700">Notes</label>
                 <textarea
                     value={newBooking.notes}
                     onChange={(e) => setNewBooking({ ...newBooking, notes: e.target.value })}
-                    placeholder="Shenime"
+                    placeholder="Additional notes"
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-[#FF385C] focus:border-[#FF385C] transition-colors"
                     rows={3}
                 />
@@ -274,7 +282,7 @@ const BookingForm = ({ onSuccess, onCancel, booking, mode }: BookingFormProps) =
                     disabled={isSubmitting}
                     className="flex-1 px-6 py-3 bg-[#FF385C] text-white rounded-lg hover:bg-[#FF385C]/90 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                    {isSubmitting ? 'Saving...' : mode === 'edit' ? 'Ndrysho' : 'Shto'}
+                    {isSubmitting ? 'Saving...' : mode === 'edit' ? 'Update' : 'Add'}
                 </button>
                 <button
                     onClick={onCancel}
