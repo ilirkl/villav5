@@ -232,22 +232,8 @@ const Booking = () => {
                     >
                         Data {sortBy === 'date' && (sortOrder === 'asc' ? <FiArrowUp className="inline ml-1" /> : <FiArrowDown className="inline ml-1" />)}
                     </button>
-                    <button
-                        onClick={() => handleSort('name')}
-                        className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${
-                            sortBy === 'name' ? 'bg-[#FF385C] text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                        }`}
-                    >
-                        Emri {sortBy === 'name' && (sortOrder === 'asc' ? <FiArrowUp className="inline ml-1" /> : <FiArrowDown className="inline ml-1" />)}
-                    </button>
-                    <button
-                        onClick={() => handleSort('amount')}
-                        className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${
-                            sortBy === 'amount' ? 'bg-[#FF385C] text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                        }`}
-                    >
-                        Shuma {sortBy === 'amount' && (sortOrder === 'asc' ? <FiArrowUp className="inline ml-1" /> : <FiArrowDown className="inline ml-1" />)}
-                    </button>
+                    
+                    
                 </div>
             </div>
 
