@@ -5,10 +5,10 @@ import { supabase } from '../../../utils/supabaseClient';
 import Modal from '../Modal';
 import BookingForm from '../booking/BookingForm';
 import BookingInvoice from './BookingInvoice';
-import { FiArrowUp, FiArrowDown } from 'react-icons/fi';
+import { FiFilter, FiArrowUp, FiArrowDown } from 'react-icons/fi';
 
 export interface Booking {
-    id: string;
+    id: string; // UUID, matches gen_random_uuid()
     start_date: string;
     end_date: string;
     checkin_time?: string;
@@ -18,6 +18,7 @@ export interface Booking {
     amount: number;
     prepayment: number;
     notes: string;
+    user_id?: string; // Optional, matches schema (NULL allowed, defaults to auth.uid())
 }
 
 const formatAmount = (amount: number) => {
@@ -57,10 +58,18 @@ const Booking = () => {
         setIsLoading(true);
         const currentOffset = reset ? 0 : offset;
 
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session?.user) {
+            return;
+        }
+
+        const userId = session.user.id;
+
         try {
             let query = supabase
                 .from('bookings')
-                .select('id, start_date, end_date, checkin_time, checkout_time, guest_name, guest_phone, amount, prepayment, notes')
+                .select('id, start_date, end_date, checkin_time, checkout_time, guest_name, guest_phone, amount, prepayment, notes, user_id')
+                .eq('user_id', userId) // Filter by authenticated user
                 .range(currentOffset, currentOffset + limit - 1);
 
             if (startDate) query = query.gte('start_date', startDate);
@@ -95,7 +104,10 @@ const Booking = () => {
 
             setOffset((prev) => (reset ? limit : prev + limit));
             setHasMore(fetchedBookings.length === limit);
-        }  finally {
+        } catch (error) {
+            alert('Error loading bookings. Please try again.');
+            setBookings([]);
+        } finally {
             setIsLoading(false);
         }
     }, [offset, hasMore, isLoading, startDate, endDate, sortBy, sortOrder]);
@@ -127,6 +139,13 @@ const Booking = () => {
     }, [fetchBookings, hasMore, isLoading]);
 
     const handleBookingSuccess = async (newBooking: Omit<Booking, 'id'>) => {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session?.user) {
+            alert('Please log in to save a booking.');
+            return;
+        }
+
+        const userId = session.user.id;
         const otherBookings = modalMode === 'edit' && selectedBooking
             ? bookings.filter(b => b.id !== selectedBooking.id)
             : bookings;
@@ -143,6 +162,7 @@ const Booking = () => {
             alert('The selected dates are already booked. Please choose different dates.');
             return;
         }
+
         setIsModalOpen(false);
         setSelectedBooking(null);
         fetchBookings(true);
@@ -166,7 +186,7 @@ const Booking = () => {
             const { error } = await supabase.from('bookings').delete().eq('id', bookingId);
             if (error) throw error;
             fetchBookings(true);
-        } catch {
+        } catch (error) {
             alert('Error deleting booking. Please try again.');
         }
     };
@@ -212,6 +232,22 @@ const Booking = () => {
                         }`}
                     >
                         Data {sortBy === 'date' && (sortOrder === 'asc' ? <FiArrowUp className="inline ml-1" /> : <FiArrowDown className="inline ml-1" />)}
+                    </button>
+                    <button
+                        onClick={() => handleSort('name')}
+                        className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${
+                            sortBy === 'name' ? 'bg-[#FF385C] text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                        }`}
+                    >
+                        Emri {sortBy === 'name' && (sortOrder === 'asc' ? <FiArrowUp className="inline ml-1" /> : <FiArrowDown className="inline ml-1" />)}
+                    </button>
+                    <button
+                        onClick={() => handleSort('amount')}
+                        className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${
+                            sortBy === 'amount' ? 'bg-[#FF385C] text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                        }`}
+                    >
+                        Shuma {sortBy === 'amount' && (sortOrder === 'asc' ? <FiArrowUp className="inline ml-1" /> : <FiArrowDown className="inline ml-1" />)}
                     </button>
                 </div>
             </div>

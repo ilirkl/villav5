@@ -25,12 +25,12 @@ export interface SeasonalPricing {
     created_at: string;
 }
 
-export interface expenses {
+export interface Expense {
     id: string;
     date: string;
-    description: string;
-    amount: number;
     category: string;
+    amount: number;
+    description: string;
     created_at: string;
     user_id: string;
 }

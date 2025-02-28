@@ -1,10 +1,11 @@
 "use client";
 
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { supabase } from '../../utils/supabaseClient';
 import Modal from './Modal';
 import ExpenseForm from './ExpenseForm';
 import { FiArrowUp, FiArrowDown } from 'react-icons/fi';
+import { debounce } from 'lodash'; // Ensure lodash is installed
 
 interface Expense {
     id: string;
@@ -12,7 +13,10 @@ interface Expense {
     category: string;
     amount: number;
     description: string;
-}
+    created_at: string;
+    user_id: string;
+  }
+  
 
 const stringToColor = (str: string) => {
     let hash = 0;
@@ -38,7 +42,7 @@ const formatDate = (dateString: string) => {
     });
 };
 
-const Expenses = () => {
+const Expense = () => {
     const [expenses, setExpenses] = useState<Expense[]>([]);
     const [expandedExpenseId, setExpandedExpenseId] = useState<string | null>(null);
     const [offset, setOffset] = useState(0);
@@ -55,44 +59,88 @@ const Expenses = () => {
     const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
     const limit = 10;
 
-    const fetchCategories = async () => {
-        try {
-            const { data, error } = await supabase
-                .from('expenses')
-                .select('category')
-                .not('category', 'is', null)
-                .order('category', { ascending: true });
-    
-            if (error) {
-                console.error("Error fetching categories:", error);
-                alert('Error fetching categories. Please try again.');
-                return; // Exit the function if there's an error
-            }
-    
-            // Check if data is null or not an array before proceeding
-            if (data && Array.isArray(data)) {
+    // Use ref to store debounced function, preventing re-creation on every render
+    const debouncedFetchExpensesRef = useRef<ReturnType<typeof debounce> | null>(null);
+
+    const fetchCategories = async (retryCount = 3, delay = 1000) => {
+        let attempts = 0;
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session?.user) {
+            console.error('No authenticated user found');
+            return;
+        }
+
+        const userId = session.user.id;
+
+        while (attempts < retryCount) {
+            try {
+                const { data, error } = await supabase
+                    .from('expenses')
+                    .select('category')
+                    .not('category', 'is', null)
+                    .eq('user_id', userId) // Filter by authenticated user
+                    .order('category', { ascending: true });
+
+                if (error) {
+                    console.error('Supabase error fetching categories:', error);
+                    if (error.message.includes('net::ERR_INSUFFICIENT_RESOURCES')) {
+                        if (attempts < retryCount - 1) {
+                            await new Promise(resolve => setTimeout(resolve, delay));
+                            attempts++;
+                            continue;
+                        }
+                        alert('Network or resource error. Please check your connection or try again later.');
+                    } else {
+                        alert('Error fetching categories. Please try again.');
+                    }
+                    return;
+                }
+
                 const uniqueCategories = Array.from(new Set(data.map(item => item.category)));
                 setCategories(uniqueCategories);
-            } else {
-                // Handle the case where data is null or not an array
-                console.error("Unexpected data format:", data);
-                alert('Error fetching categories. Please try again.');
+                return;
+            } catch (error) {
+                console.error('Unexpected error fetching categories:', error);
+            
+                // Ensure 'error' is treated as an object with a 'message' property
+                if (error instanceof Error) {
+                    if (error.message.includes('net::ERR_INSUFFICIENT_RESOURCES')) {
+                        if (attempts < retryCount - 1) {
+                            await new Promise(resolve => setTimeout(resolve, delay));
+                            attempts++;
+                            continue;
+                        }
+                        alert('Network or resource error. Please check your connection or try again later.');
+                    } else {
+                        alert('Error fetching categories. Please try again.');
+                    }
+                } else {
+                    alert('An unknown error occurred.');
+                }
             }
-        } catch (error) {
-            console.error("Error fetching categories:", error);
-            alert('Error fetching categories. Please try again.');
+            
         }
     };
+
     const fetchExpenses = useCallback(async (reset = false) => {
         if (!hasMore || isLoading) return;
 
         setIsLoading(true);
         const currentOffset = reset ? 0 : offset;
 
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session?.user) {
+            console.error('No authenticated user found');
+            return;
+        }
+
+        const userId = session.user.id;
+
         try {
             let query = supabase
                 .from('expenses')
-                .select('id, date, category, amount, description')
+                .select('id, date, category, amount, description, user_id')
+                .eq('user_id', userId) // Filter by authenticated user
                 .range(currentOffset, currentOffset + limit - 1);
 
             if (startDate) query = query.gte('date', startDate);
@@ -108,7 +156,19 @@ const Expenses = () => {
                     break;
             }
 
-            const { data } = await query;
+            console.log('Fetching expenses with query:', JSON.stringify(query)); // Updated logging
+            const { data, error } = await query;
+
+            if (error) {
+                console.error('Supabase error fetching expenses:', error);
+                if (error.message.includes('net::ERR_INSUFFICIENT_RESOURCES')) {
+                    alert('Network or resource error. Please check your connection or try again later.');
+                } else {
+                    alert('Error loading expenses. Please try again.');
+                }
+                setExpenses([]);
+                return;
+            }
 
             const fetchedExpenses = data as Expense[];
 
@@ -122,25 +182,53 @@ const Expenses = () => {
 
             setOffset((prev) => (reset ? limit : prev + limit));
             setHasMore(fetchedExpenses.length === limit);
-        } catch {
-            alert('Error loading expenses. Please try again.');
+        } catch (error) {
+            console.error('Unexpected error fetching expenses:', error);
+        
+            if (error instanceof Error) { 
+                if (error.message.includes('net::ERR_INSUFFICIENT_RESOURCES')) {
+                    alert('Network or resource error. Please check your connection or try again later.');
+                } else {
+                    alert('Error loading expenses. Please try again.');
+                }
+            } else {
+                alert('An unknown error occurred.');
+            }
+        
             setExpenses([]);
         } finally {
             setIsLoading(false);
         }
+        
     }, [offset, hasMore, isLoading, startDate, endDate, selectedCategory, sortBy, sortOrder]);
 
+    // Initialize debounced function once and store in ref
     useEffect(() => {
-        fetchCategories();
-        fetchExpenses(true);
+        debouncedFetchExpensesRef.current = debounce((reset: boolean) => fetchExpenses(reset), 300);
+        return () => {
+            if (debouncedFetchExpensesRef.current) {
+                debouncedFetchExpensesRef.current.cancel();
+            }
+        };
     }, [fetchExpenses]);
 
+    // Fetch initial data on mount
+    useEffect(() => {
+        fetchCategories();
+        if (debouncedFetchExpensesRef.current) {
+            debouncedFetchExpensesRef.current(true);
+        }
+    }, []); // Only run on mount
+
+    // Fetch expenses when filters change
     useEffect(() => {
         setExpenses([]);
         setOffset(0);
         setHasMore(true);
-        fetchExpenses(true);
-    }, [fetchExpenses, startDate, endDate, selectedCategory, sortBy, sortOrder]);
+        if (debouncedFetchExpensesRef.current) {
+            debouncedFetchExpensesRef.current(true);
+        }
+    }, [startDate, endDate, selectedCategory, sortBy, sortOrder]);
 
     useEffect(() => {
         const handleScroll = () => {
@@ -148,19 +236,22 @@ const Expenses = () => {
                 window.innerHeight + document.documentElement.scrollTop >=
                     document.documentElement.offsetHeight - 100 &&
                 hasMore &&
-                !isLoading
+                !isLoading &&
+                debouncedFetchExpensesRef.current
             ) {
-                fetchExpenses();
+                debouncedFetchExpensesRef.current(false);
             }
         };
         window.addEventListener('scroll', handleScroll);
         return () => window.removeEventListener('scroll', handleScroll);
-    }, [fetchExpenses, hasMore, isLoading]);
+    }, [hasMore, isLoading]);
 
     const handleExpenseSuccess = async () => {
         setIsModalOpen(false);
         setSelectedExpense(null);
-        await fetchExpenses(true);
+        if (debouncedFetchExpensesRef.current) {
+            await debouncedFetchExpensesRef.current(true);
+        }
         await fetchCategories();
     };
 
@@ -170,7 +261,13 @@ const Expenses = () => {
         setIsModalOpen(true);
     };
 
-    const handleAdd = () => {
+    const handleAdd = async () => {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session?.user) {
+            alert('Please log in to add an expense.');
+            return;
+        }
+
         setSelectedExpense(null);
         setModalMode('create');
         setIsModalOpen(true);
@@ -179,9 +276,17 @@ const Expenses = () => {
     const handleDelete = async (expenseId: string) => {
         if (!confirm('Are you sure you want to delete this expense?')) return;
         try {
-            await supabase.from('expenses').delete().eq('id', expenseId);
-            await fetchExpenses(true);
-        } catch {
+            const { error } = await supabase.from('expenses').delete().eq('id', expenseId);
+            if (error) {
+                console.error('Error deleting expense:', error);
+                alert('Error deleting expense. Please try again.');
+                return;
+            }
+            if (debouncedFetchExpensesRef.current) {
+                await debouncedFetchExpensesRef.current(true);
+            }
+        } catch (error) {
+            console.error('Unexpected error deleting expense:', error);
             alert('Error deleting expense. Please try again.');
         }
     };
@@ -342,4 +447,4 @@ const Expenses = () => {
     );
 };
 
-export default Expenses;
+export default Expense;
