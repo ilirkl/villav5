@@ -5,7 +5,7 @@ import { supabase } from '../../../utils/supabaseClient';
 import Modal from '../Modal';
 import BookingForm from '../booking/BookingForm';
 import BookingInvoice from './BookingInvoice';
-import { FiFilter, FiArrowUp, FiArrowDown } from 'react-icons/fi';
+import { FiArrowUp, FiArrowDown } from 'react-icons/fi';
 
 export interface Booking {
     id: string; // UUID, matches gen_random_uuid()
@@ -104,7 +104,7 @@ const Booking = () => {
 
             setOffset((prev) => (reset ? limit : prev + limit));
             setHasMore(fetchedBookings.length === limit);
-        } catch (error) {
+        } catch {
             alert('Error loading bookings. Please try again.');
             setBookings([]);
         } finally {
@@ -114,7 +114,7 @@ const Booking = () => {
 
     useEffect(() => {
         fetchBookings(true);
-    }, []);
+    }, [fetchBookings]);
 
     useEffect(() => {
         setBookings([]);
@@ -145,7 +145,6 @@ const Booking = () => {
             return;
         }
 
-        const userId = session.user.id;
         const otherBookings = modalMode === 'edit' && selectedBooking
             ? bookings.filter(b => b.id !== selectedBooking.id)
             : bookings;
@@ -186,7 +185,7 @@ const Booking = () => {
             const { error } = await supabase.from('bookings').delete().eq('id', bookingId);
             if (error) throw error;
             fetchBookings(true);
-        } catch (error) {
+        } catch {
             alert('Error deleting booking. Please try again.');
         }
     };

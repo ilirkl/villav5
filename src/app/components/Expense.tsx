@@ -124,54 +124,55 @@ const Expense = () => {
 
     const fetchExpenses = useCallback(async (reset = false) => {
         if (!hasMore || isLoading) return;
-
+    
         setIsLoading(true);
         const currentOffset = reset ? 0 : offset;
-
+    
         const { data: { session } } = await supabase.auth.getSession();
         if (!session?.user) {
             console.error('No authenticated user found');
             return;
         }
-
+    
         const userId = session.user.id;
-
+    
         try {
+            // Start with the base query
             let query = supabase
                 .from('expenses')
                 .select('id, date, category, amount, description, user_id')
-                .eq('user_id', userId) // Filter by authenticated user
-                .range(currentOffset, currentOffset + limit - 1);
-
+                .eq('user_id', userId); // Apply mandatory user_id filter first
+    
+            // Apply all optional filters
             if (startDate) query = query.gte('date', startDate);
             if (endDate) query = query.lte('date', endDate);
             if (selectedCategory && selectedCategory !== 'all') query = query.eq('category', selectedCategory);
-
+    
+            // Apply ordering
             switch (sortBy) {
                 case 'date':
                     query = query.order('date', { ascending: sortOrder === 'asc' });
                     break;
-                case 'description':
-                    query = query.order('description', { ascending: sortOrder === 'asc' });
-                    break;
-            }
-
-            console.log('Fetching expenses with query:', JSON.stringify(query)); // Updated logging
+                }
+    
+            // Apply range for pagination LAST
+            query = query.range(currentOffset, currentOffset + limit - 1);
+    
             const { data, error } = await query;
-
+    
             if (error) {
                 console.error('Supabase error fetching expenses:', error);
-                if (error.message.includes('net::ERR_INSUFFICIENT_RESOURCES')) {
-                    alert('Network or resource error. Please check your connection or try again later.');
-                } else {
-                    alert('Error loading expenses. Please try again.');
-                }
+                if (error) {
+                    console.error('Error fetching expenses:', error);
+                    setExpenses([]);
+                    return;
+                  }
                 setExpenses([]);
                 return;
             }
-
+    
             const fetchedExpenses = data as Expense[];
-
+    
             setExpenses((prev) => {
                 if (reset) return fetchedExpenses;
                 const newExpenses = fetchedExpenses.filter(
@@ -179,13 +180,12 @@ const Expense = () => {
                 );
                 return [...prev, ...newExpenses];
             });
-
+    
             setOffset((prev) => (reset ? limit : prev + limit));
             setHasMore(fetchedExpenses.length === limit);
         } catch (error) {
             console.error('Unexpected error fetching expenses:', error);
-        
-            if (error instanceof Error) { 
+            if (error instanceof Error) {
                 if (error.message.includes('net::ERR_INSUFFICIENT_RESOURCES')) {
                     alert('Network or resource error. Please check your connection or try again later.');
                 } else {
@@ -194,12 +194,10 @@ const Expense = () => {
             } else {
                 alert('An unknown error occurred.');
             }
-        
             setExpenses([]);
         } finally {
             setIsLoading(false);
         }
-        
     }, [offset, hasMore, isLoading, startDate, endDate, selectedCategory, sortBy, sortOrder]);
 
     // Initialize debounced function once and store in ref
