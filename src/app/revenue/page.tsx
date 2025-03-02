@@ -1,9 +1,9 @@
 "use client";
 
-import React, { useEffect, useState, useCallback, useMemo } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { supabase } from '../../utils/supabaseClient';
 import { Booking } from '../components/booking/Booking';
-import { BarChart, Bar, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, ReferenceLine } from 'recharts';
+import { BarChart, Bar, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
 interface FinancialData {
   netProfit: number;
@@ -35,87 +35,125 @@ const formatCurrency = (amount: number) => {
 };
 
 export default function RevenuePage() {
-  const [allBookings, setAllBookings] = useState<Booking[] | null>(null);
-  const [allExpenses, setAllExpenses] = useState<Expense[] | null>(null);
   const [financialData, setFinancialData] = useState<FinancialData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [startDate, setStartDate] = useState<string>('');
   const [endDate, setEndDate] = useState<string>('');
-  const [timePeriod, setTimePeriod] = useState<'1M' | '6M' | '1Y'>('1M');
-  const [projectionPeriod, setProjectionPeriod] = useState<'none' | '1M' | '6M' | '1Y'>('none');
+  const [timePeriod, setTimePeriod] = useState<'1M' | '6M' | '1Y' | 'F1M' | 'F6M' | 'F1Y'>('1M');
   const [tableVisible, setTableVisible] = useState(true);
 
-  // Fetch all bookings and expenses without date filters
-  useEffect(() => {
-    const fetchAllData = async () => {
-      try {
-        const { data: bookings, error: bookingsError } = await supabase
-          .from('bookings')
-          .select('*')
-          .order('start_date', { ascending: true });
+  const fetchFinancialData = useCallback(async () => {
+    try {
+      const { data: bookings, error: bookingsError } = await supabase
+        .from('bookings')
+        .select('*')
+        .order('start_date', { ascending: true });
 
-        const { data: expenses, error: expensesError } = await supabase
-          .from('expenses')
-          .select('*');
+      const { data: expenses, error: expensesError } = await supabase
+        .from('expenses')
+        .select('*');
 
-        if (bookingsError) throw bookingsError;
-        if (expensesError) throw expensesError;
+      if (bookingsError) throw bookingsError;
+      if (expensesError) throw expensesError;
 
-        setAllBookings(bookings);
-        setAllExpenses(expenses);
-      } catch (error) {
-        console.error('Error fetching data:', error);
-      }
-    };
-
-    fetchAllData();
-  }, []);
-
-  // Process historical data based on selected date range
-  useEffect(() => {
-    if (allBookings && allExpenses) {
-      const filteredBookings = allBookings.filter(booking => {
+      const filteredBookings = bookings.filter(booking => {
         const bookingDate = new Date(booking.start_date);
         const start = new Date(startDate);
         const end = new Date(endDate);
-        return bookingDate >= start && bookingDate <= end;
+        return (!startDate || bookingDate >= start) && (!endDate || bookingDate <= end);
       });
 
-      const filteredExpenses = allExpenses.filter(expense => {
+      const filteredExpenses = expenses.filter(expense => {
         const expenseDate = new Date(expense.date);
         const start = new Date(startDate);
         const end = new Date(endDate);
-        return expenseDate >= start && expenseDate <= end;
+        return (!startDate || expenseDate >= start) && (!endDate || expenseDate <= end);
       });
 
-      const processedData = processFinancialData(filteredBookings, filteredExpenses, startDate, endDate);
+      const processedData = processFinancialData(
+        filteredBookings,
+        filteredExpenses,
+        startDate,
+        endDate
+      );
       setFinancialData(processedData);
+    }  finally {
       setIsLoading(false);
     }
-  }, [allBookings, allExpenses, startDate, endDate]);
+  }, [startDate, endDate]);
 
-  // Set default date range based on selected time period
-  const getDateRange = (period: '1M' | '6M' | '1Y') => {
+  const getDateRange = (period: '1M' | '6M' | '1Y' | 'F1M' | 'F6M' | 'F1Y') => {
     const today = new Date();
     const start = new Date(today);
-    switch (period) {
-      case '1M': start.setMonth(today.getMonth() - 1); break;
-      case '6M': start.setMonth(today.getMonth() - 6); break;
-      case '1Y': start.setFullYear(today.getFullYear() - 1); break;
-    }
-    return {
-      start: start.toISOString().split('T')[0],
-      end: today.toISOString().split('T')[0]
-    };
+    const end = new Date(today);
+
+    
+    switch(period) {
+      case '1M':
+        start.setMonth(today.getMonth() - 1);
+        break;
+      case '6M':
+        start.setMonth(today.getMonth() - 6);
+        break;
+      case '1Y':
+        start.setFullYear(today.getFullYear() - 1);
+        break;
+    // Future periods
+    case 'F1M':
+      end.setMonth(today.getMonth() + 1);
+      break;
+    case 'F6M':
+      end.setMonth(today.getMonth() + 6);
+      break;
+    case 'F1Y':
+      end.setFullYear(today.getFullYear() + 1);
+      break;
+  }
+    
+  return {
+    start: period.startsWith('F') ? today.toISOString().split('T')[0] : start.toISOString().split('T')[0],
+    end: end.toISOString().split('T')[0]
   };
+};
+
+useEffect(() => {
+  const { start, end } = getDateRange(timePeriod);
+  setStartDate(start);
+  setEndDate(end);
+}, [timePeriod]);
+
 
   useEffect(() => {
-    const { start, end } = getDateRange(timePeriod);
-    setStartDate(start);
-    setEndDate(end);
-  }, [timePeriod]);
+    fetchFinancialData();
+  }, [fetchFinancialData, startDate, endDate]);
 
-  // Process financial data for historical period
+  const exportToCSV = () => {
+    if (!financialData) return;
+    
+    const csvContent = [
+      ['Month', 'Bookings', 'Prepayment', 'Total Amount', 'Expenses'],
+      ...financialData.monthlyCashFlow.map(month => [
+        month.month,
+        month.bookings,
+        month.prepaid,
+        month.revenue,
+        month.expenses
+      ])
+    ]
+    .map(row => row.join(','))
+    .join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `revenue-report-${new Date().toISOString().split('T')[0]}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   const processFinancialData = (
     bookings: Booking[],
     expenses: Expense[],
@@ -131,18 +169,38 @@ export default function RevenuePage() {
     const start = startDate ? new Date(startDate) : new Date(Math.min(...bookingDates));
     const end = endDate ? new Date(endDate) : new Date(Math.max(...bookingDates));
 
-    const monthsInRange: Record<string, { prepaid: number; paid: number; revenue: number; bookings: number; expenses: number }> = {};
+    const monthsInRange: Record<string, { 
+      prepaid: number; 
+      paid: number;
+      revenue: number;
+      bookings: number;
+      expenses: number; 
+    }> = {};
+
     const currentDate = new Date(start);
     currentDate.setDate(1);
 
     while (currentDate <= end) {
-      const monthKey = currentDate.toLocaleString('default', { year: 'numeric', month: 'long' });
-      monthsInRange[monthKey] = { prepaid: 0, paid: 0, revenue: 0, bookings: 0, expenses: 0 };
+      const monthKey = currentDate.toLocaleString('default', {
+        year: 'numeric',
+        month: 'long'
+      });
+      monthsInRange[monthKey] = { 
+        prepaid: 0, 
+        paid: 0,
+        revenue: 0,
+        bookings: 0,
+        expenses: 0 
+      };
       currentDate.setMonth(currentDate.getMonth() + 1);
     }
 
     const monthlyData = bookings.reduce((acc, booking) => {
-      const monthKey = new Date(booking.start_date).toLocaleString('default', { year: 'numeric', month: 'long' });
+      const monthKey = new Date(booking.start_date).toLocaleString('default', {
+        year: 'numeric',
+        month: 'long'
+      });
+
       if (acc[monthKey]) {
         acc[monthKey].prepaid += booking.prepayment;
         acc[monthKey].paid += booking.amount - booking.prepayment;
@@ -153,11 +211,16 @@ export default function RevenuePage() {
     }, { ...monthsInRange });
 
     expenses.forEach(expense => {
-      const monthKey = new Date(expense.date).toLocaleString('default', { year: 'numeric', month: 'long' });
-      if (monthlyData[monthKey]) monthlyData[monthKey].expenses += expense.amount;
+      const monthKey = new Date(expense.date).toLocaleString('default', {
+        year: 'numeric',
+        month: 'long'
+      });
+      if (monthlyData[monthKey]) {
+        monthlyData[monthKey].expenses += expense.amount;
+      }
     });
 
-    return {
+    const result = {
       netProfit,
       totalPrepaid,
       totalPaid,
@@ -172,99 +235,7 @@ export default function RevenuePage() {
         expenses: amounts.expenses
       }))
     };
-  };
-
-  // Helper function to get actual data for a specific month
-  const getMonthlyData = (monthKey: string, bookings: Booking[], expenses: Expense[]) => {
-    const [year, monthName] = monthKey.split(' ');
-    const monthIndex = new Date(Date.parse(monthName + ' 1, ' + year)).getMonth();
-    const startOfMonth = new Date(parseInt(year), monthIndex, 1);
-    const endOfMonth = new Date(parseInt(year), monthIndex + 1, 0);
-
-    const monthlyBookings = bookings.filter(booking => {
-      const bookingDate = new Date(booking.start_date);
-      return bookingDate >= startOfMonth && bookingDate <= endOfMonth;
-    });
-
-    const monthlyExpenses = expenses.filter(expense => {
-      const expenseDate = new Date(expense.date);
-      return expenseDate >= startOfMonth && expenseDate <= endOfMonth;
-    });
-
-    const prepaid = monthlyBookings.reduce((sum, booking) => sum + booking.prepayment, 0);
-    const revenue = monthlyBookings.reduce((sum, booking) => sum + booking.amount, 0);
-    const paid = revenue - prepaid;
-    const bookingsCount = monthlyBookings.length;
-    const expensesSum = monthlyExpenses.reduce((sum, expense) => sum + expense.amount, 0);
-
-    return { prepaid, paid, revenue, bookings: bookingsCount, expenses: expensesSum };
-  };
-
-  // Compute extended cash flow with projections using actual data only
-  const extendedMonthlyCashFlow = useMemo(() => {
-    if (!financialData || !allBookings || !allExpenses || projectionPeriod === 'none') {
-      return financialData?.monthlyCashFlow.map(m => ({ ...m, isProjection: false })) || [];
-    }
-
-    const historical = financialData.monthlyCashFlow.map(m => ({ ...m, isProjection: false }));
-    if (historical.length === 0) return historical;
-
-    const lastHistoricalMonth = historical[historical.length - 1].month;
-    const lastDate = new Date(lastHistoricalMonth + ' 1');
-    lastDate.setMonth(lastDate.getMonth() + 1); // Start projections from the next month
-
-    const projectionMonths = projectionPeriod === '1M' ? 1 : projectionPeriod === '6M' ? 6 : 12;
-    const projectedData = [];
-
-    for (let i = 0; i < projectionMonths; i++) {
-      const nextDate = new Date(lastDate);
-      nextDate.setMonth(nextDate.getMonth() + i);
-      const monthKey = nextDate.toLocaleString('default', { year: 'numeric', month: 'long' });
-
-      const actualData = getMonthlyData(monthKey, allBookings, allExpenses);
-
-      const monthData = {
-        month: monthKey,
-        prepaid: actualData.prepaid,
-        paid: actualData.paid,
-        revenue: actualData.revenue,
-        bookings: actualData.bookings,
-        expenses: actualData.expenses,
-        isProjection: true
-      };
-
-      projectedData.push(monthData);
-    }
-
-    return [...historical, ...projectedData];
-  }, [financialData, allBookings, allExpenses, projectionPeriod]);
-
-  // Export data to CSV
-  const exportToCSV = () => {
-    if (!extendedMonthlyCashFlow.length) return;
-
-    const csvContent = [
-      ['Month', 'Type', 'Bookings', 'Prepayment', 'Total Amount', 'Expenses'],
-      ...extendedMonthlyCashFlow.map(month => [
-        month.month,
-        month.isProjection ? 'Projection' : 'Historical',
-        month.bookings,
-        month.prepaid,
-        month.revenue,
-        month.expenses
-      ])
-    ]
-    .map(row => row.join(','))
-    .join('\n');
-
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement('a');
-    const url = URL.createObjectURL(blob);
-    link.setAttribute('href', url);
-    link.setAttribute('download', `revenue-report-${new Date().toISOString().split('T')[0]}.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    return result;
   };
 
   if (isLoading) {
@@ -277,172 +248,238 @@ export default function RevenuePage() {
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-8">
-      <div className="mb-4 flex flex-col sm:flex-row gap-2">
-        <div className="flex gap-2">
-          {['1M', '6M', '1Y'].map(period => (
-            <button
-              key={period}
-              onClick={() => setTimePeriod(period as '1M' | '6M' | '1Y')}
-              className={`px-4 py-2 rounded ${timePeriod === period ? 'bg-blue-600 text-white' : 'bg-gray-200'}`}
-            >
-              {period === '1M' ? '1 Muaj' : period === '6M' ? '6 Muaj' : '1 Vjet'}
-            </button>
-          ))}
-        </div>
-        <div className="flex gap-2">
-          {['none', '1M', '6M', '1Y'].map(period => (
-            <button
-              key={period}
-              onClick={() => setProjectionPeriod(period as 'none' | '1M' | '6M' | '1Y')}
-              className={`px-4 py-2 rounded ${projectionPeriod === period ? 'bg-blue-600 text-white' : 'bg-gray-200'}`}
-            >
-              {period === 'none' ? 'No Projection' : `Project ${period}`}
-            </button>
-          ))}
-        </div>
-        <div className="flex items-center">
-          <label className="mr-2">Nga:</label>
-          <input
-            type="date"
-            value={startDate}
-            onChange={(e) => setStartDate(e.target.value)}
-            className="border rounded p-2 w-full sm:w-auto"
+      <div className="mb-4 flex flex-wrap gap-2 max-w-[350px]">
+        <div className="flex gap-2 mb-4">
+        <select
+    value={timePeriod}
+    onChange={(e) => setTimePeriod(e.target.value as '1M' | '6M' | '1Y' | 'F1M' | 'F6M' | 'F1Y')}
+    className="px-4 py-2 rounded bg-gray-200 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent w-full max-w-[350px]"
+  >
+    <optgroup label="E kaluar">
+      <option value="1M">1 Muaj (E kaluar)</option>
+      <option value="6M">6 Muaj (E kaluar)</option>
+      <option value="1Y">1 Vjet (E kaluar)</option>
+    </optgroup>
+    <optgroup label="E ardhme">
+      <option value="F1M">1 Muaj (E ardhme)</option>
+      <option value="F6M">6 Muaj (E ardhme)</option>
+      <option value="F1Y">1 Vjet (E ardhme)</option>
+    </optgroup>
+  </select>
+  <div className="flex items-center gap-4 mb-4">
+  <div className="flex items-center gap-4">
+    <label className="mr-2 whitespace-nowrap">Nga:</label>
+    <div className="relative w-2">
+      <input
+        type="date"
+        value={startDate}
+        onChange={(e) => setStartDate(e.target.value)}
+        className="border rounded p-2 opacity-0 absolute inset-0 w-full h-full cursor-pointer"
+        onClick={(e) => e.currentTarget.showPicker()}
+      />
+      <button
+        onClick={(e) => {
+          e.preventDefault();
+          const input = e.currentTarget.previousSibling as HTMLInputElement;
+          input.showPicker();
+        }}
+        className="absolute right-0 top-1/2 transform -translate-y-1/2 bg-transparent border-none cursor-pointer"
+        aria-label="Open date picker"
+      >
+        <svg
+          className="w-5 h-5 text-gray-500"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth="2"
+            d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
           />
-        </div>
-        <div className="flex items-center">
-          <label className="mr-2">Deri:</label>
-          <input
-            type="date"
-            value={endDate}
-            onChange={(e) => setEndDate(e.target.value)}
-            className="border rounded p-2 w-full sm:w-auto"
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  <div className="flex items-center gap-4">
+    <label className="mr-2 whitespace-nowrap">Deri:</label>
+    <div className="relative w-2">
+      <input
+        type="date"
+        value={endDate}
+        onChange={(e) => setEndDate(e.target.value)}
+        className="border rounded p-2 opacity-0 absolute inset-0 w-full h-full cursor-pointer"
+        onClick={(e) => e.currentTarget.showPicker()}
+      />
+      <button
+        onClick={(e) => {
+          e.preventDefault();
+          const input = e.currentTarget.previousSibling as HTMLInputElement;
+          input.showPicker();
+        }}
+        className="absolute right-0 top-1/2 transform -translate-y-1/2 bg-transparent border-none cursor-pointer"
+        aria-label="Open date picker"
+      >
+        <svg
+          className="w-5 h-5 text-gray-500"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth="2"
+            d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
           />
+        </svg>
+      </button>
+    </div>
+  </div>
+</div>
+
+   
         </div>
+
+       
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         <div className="bg-white p-4 rounded-lg shadow">
           <h3 className="text-sm font-medium text-gray-500">Net Profiti</h3>
-          <p className="text-2xl font-semibold text-green-600">{formatCurrency(financialData?.netProfit || 0)}</p>
+          <p className="text-2xl font-semibold text-green-600">
+            {formatCurrency(financialData?.netProfit || 0)}
+          </p>
         </div>
         <div className="bg-white p-4 rounded-lg shadow">
           <h3 className="text-sm font-medium text-gray-500">Total Parapagim</h3>
-          <p className="text-2xl font-semibold text-blue-600">{formatCurrency(financialData?.totalPrepaid || 0)}</p>
+          <p className="text-2xl font-semibold text-blue-600">
+            {formatCurrency(financialData?.totalPrepaid || 0)}
+          </p>
         </div>
         <div className="bg-white p-4 rounded-lg shadow">
           <h3 className="text-sm font-medium text-gray-500">Total Paguar</h3>
-          <p className="text-2xl font-semibold text-purple-600">{formatCurrency(financialData?.totalPaid || 0)}</p>
+          <p className="text-2xl font-semibold text-purple-600">
+            {formatCurrency(financialData?.totalPaid || 0)}
+          </p>
         </div>
         <div className="bg-white p-4 rounded-lg shadow">
           <h3 className="text-sm font-medium text-gray-500">Total Shpenzime</h3>
-          <p className="text-2xl font-semibold text-red-600">{formatCurrency(financialData?.totalExpenses || 0)}</p>
+          <p className="text-2xl font-semibold text-red-600">
+            {formatCurrency(financialData?.totalExpenses || 0)}
+          </p>
         </div>
       </div>
 
       <div className="bg-white rounded-lg shadow p-6 mb-8">
         <h2 className="text-xl font-semibold mb-4">Statistikat</h2>
         <div className="h-96">
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={extendedMonthlyCashFlow}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="month" />
-              <YAxis yAxisId="left" tickFormatter={(value) => formatCurrency(value).replace('€', '') + '€'} />
-              <YAxis
-                yAxisId="right"
-                orientation="right"
-                domain={[0, 'auto']}
-                label={{ value: 'Rezervime', angle: -90, position: 'insideRight', offset: 20 }}
-                tickFormatter={(value) => `${value}`}
-              />
-              <Tooltip formatter={(value, name) => (name === 'Rezervime' ? value : formatCurrency(Number(value)))} />
-              <Legend />
-              {projectionPeriod !== 'none' && extendedMonthlyCashFlow.length > financialData!.monthlyCashFlow.length && (
-                <ReferenceLine
-                  x={extendedMonthlyCashFlow[financialData!.monthlyCashFlow.length].month}
-                  stroke="gray"
-                  label="Start of Projections"
+          {financialData && (
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={financialData.monthlyCashFlow}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="month" />
+                <YAxis 
                   yAxisId="left"
+                  tickFormatter={(value) => formatCurrency(value).replace('€', '') + '€'}
                 />
-              )}
-              <Bar
-                yAxisId="left"
-                dataKey="revenue"
-                name="Revenue"
-                fill={(entry) => {
-                  return entry.payload.isProjection ? 'rgba(255, 56, 92, 0.5)' : 'rgb(255, 56, 92)';
-                }}
-              />
-              <Bar
-                yAxisId="left"
-                dataKey="expenses"
-                name="Expenses"
-                fill={(entry) => {
-                  return entry.payload.isProjection ? '#A9A9A9' : '#000000';
-                }}
-              />
-              <Line
-                yAxisId="right"
-                type="monotone"
-                dataKey="bookings"
-                name="Rezervime"
-                stroke="#9333ea"
-                strokeWidth={6}
-                strokeOpacity={0.8}
-                dot={{ fill: '#9333ea', strokeWidth: 2, r: 8 }}
-                animationDuration={300}
-              />
-            </BarChart>
-          </ResponsiveContainer>
+                <YAxis 
+                  yAxisId="right" 
+                  orientation="right"
+                  domain={[0, 'auto']}
+                  label={{ 
+                    value: 'Rezervime', 
+                    angle: -90,
+                    position: 'insideRight',
+                    offset: 20
+                  }}
+                  tickFormatter={(value) => `${value}`}
+                />
+                <Tooltip 
+                  formatter={(value, name) => 
+                    name === 'Rezervime' ? value : formatCurrency(Number(value))
+                  }
+                />
+                <Legend />
+                <Line
+                  yAxisId="right"
+                  type="monotone" 
+                  dataKey="bookings" 
+                  name="Rezervime" 
+                  stroke="#9333ea"
+                  strokeWidth={6}
+                  strokeOpacity={0.8}
+                  dot={{ fill: '#9333ea', strokeWidth: 2, r: 8 }}
+                  animationDuration={300}
+                  strokeDasharray="5 5"
+                />
+                <Bar 
+                  yAxisId="left"
+                  dataKey="revenue" 
+                  name="Revenue" 
+                  fill="#16a34a" 
+                />
+                <Bar 
+                  yAxisId="left"
+                  dataKey="expenses" 
+                  name="Shpenzime" 
+                  fill="#dc2626" 
+                />
+              </BarChart>
+            </ResponsiveContainer>
+          )}
         </div>
       </div>
-
+      
+<div className="flex items-center">
+  
+  
+</div>
       <div className="mb-4 flex gap-2">
-        <button
+        <button 
           onClick={() => setTableVisible(!tableVisible)}
-          className="bg-gray-200 px-4 py-2 rounded hover:bg-gray-300"
-        >
+          className="bg-gray-200 px-4 py-2 rounded hover:bg-gray-300">
           {tableVisible ? 'Fshih Tabelen' : 'Shfaq Tabelen'}
         </button>
-        <button
+        <button 
           onClick={exportToCSV}
-          disabled={!extendedMonthlyCashFlow.length}
-          className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
-        >
+          disabled={!financialData}
+          className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed">
           Exporto CSV
         </button>
       </div>
 
-      {tableVisible && (
-        <div className="bg-white rounded-lg shadow p-6">
-          <h2 className="text-xl font-semibold mb-4">Kesh-Flow per periudhen</h2>
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b">
-                  <th className="text-left py-3 px-4">Muaji</th>
-                  <th className="text-right py-3 px-4">Parapagim</th>
-                  <th className="text-right py-3 px-4">Per tPaguar</th>
-                  <th className="text-right py-3 px-4">Total</th>
-                  <th className="text-right py-3 px-4">Shpenzime</th>
-                  <th className="text-right py-3 px-4">Lloji</th>
+      <div className={`bg-white rounded-lg shadow p-6 ${!tableVisible && 'hidden'}`}>
+        <h2 className="text-xl font-semibold mb-4">Kesh-Flow per periudhen</h2>
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead>
+              <tr className="border-b">
+                <th className="text-right py-3 px-4">Muaji</th>
+                <th className="text-right py-3 px-4">Parapagim</th>
+                <th className="text-right py-3 px-4">Per tPaguar</th>
+                <th className="text-right py-3 px-4">Total</th>
+              </tr>
+            </thead>
+            <tbody>
+              {financialData?.monthlyCashFlow.map((monthData) => (
+                <tr key={monthData.month} className="border-b hover:bg-gray-50">
+                  <td className="text-left py-3 px-4">{monthData.month}</td>
+                  <td className="text-right py-3 px-4">{formatCurrency(monthData.prepaid)}</td>
+                  <td className="text-right py-3 px-4">{formatCurrency(monthData.paid)}</td>
+                  <td className="text-right py-3 px-4 font-medium">
+                    {formatCurrency(monthData.prepaid + monthData.paid)}
+                  </td>
                 </tr>
-              </thead>
-              <tbody>
-                {extendedMonthlyCashFlow.map((monthData) => (
-                  <tr key={monthData.month} className={`border-b ${monthData.isProjection ? 'bg-gray-100' : ''}`}>
-                    <td className="text-left py-3 px-4">{monthData.month}</td>
-                    <td className="text-right py-3 px-4">{formatCurrency(monthData.prepaid)}</td>
-                    <td className="text-right py-3 px-4">{formatCurrency(monthData.paid)}</td>
-                    <td className="text-right py-3 px-4 font-medium">{formatCurrency(monthData.revenue)}</td>
-                    <td className="text-right py-3 px-4">{formatCurrency(monthData.expenses)}</td>
-                    <td className="text-right py-3 px-4">{monthData.isProjection ? 'Projektim' : 'Historik'}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+              ))}
+            </tbody>
+          </table>
         </div>
-      )}
+      </div>
     </div>
   );
 }
