@@ -3,7 +3,16 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { supabase } from '../../utils/supabaseClient';
 import { Booking } from '../components/booking/Booking';
-import { BarChart, Bar, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import {
+  AreaChart,
+  Area,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+} from 'recharts';
 
 interface FinancialData {
   netProfit: number;
@@ -30,7 +39,9 @@ interface Expense {
 const formatCurrency = (amount: number) => {
   return new Intl.NumberFormat('en-US', {
     style: 'currency',
-    currency: 'EUR'
+    currency: 'EUR',
+    minimumFractionDigits: 0, // No decimal places
+    maximumFractionDigits: 0  // No decimal places
   }).format(amount);
 };
 
@@ -182,8 +193,8 @@ useEffect(() => {
 
     while (currentDate <= end) {
       const monthKey = currentDate.toLocaleString('default', {
-        year: 'numeric',
-        month: 'long'
+        year: '2-digit',
+        month: 'short'
       });
       monthsInRange[monthKey] = { 
         prepaid: 0, 
@@ -197,8 +208,8 @@ useEffect(() => {
 
     const monthlyData = bookings.reduce((acc, booking) => {
       const monthKey = new Date(booking.start_date).toLocaleString('default', {
-        year: 'numeric',
-        month: 'long'
+        year: '2-digit',
+        month: 'short'
       });
 
       if (acc[monthKey]) {
@@ -212,8 +223,8 @@ useEffect(() => {
 
     expenses.forEach(expense => {
       const monthKey = new Date(expense.date).toLocaleString('default', {
-        year: 'numeric',
-        month: 'long'
+        year: '2-digit',
+        month: 'short'
       });
       if (monthlyData[monthKey]) {
         monthlyData[monthKey].expenses += expense.amount;
@@ -380,57 +391,66 @@ useEffect(() => {
         <div className="h-96">
           {financialData && (
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={financialData.monthlyCashFlow}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="month" />
-                <YAxis 
-                  yAxisId="left"
-                  tickFormatter={(value) => formatCurrency(value).replace('€', '') + '€'}
-                />
-                <YAxis 
-                  yAxisId="right" 
-                  orientation="right"
-                  domain={[0, 'auto']}
-                  label={{ 
-                    value: 'Rezervime', 
-                    angle: -90,
-                    position: 'insideRight',
-                    offset: 20
-                  }}
-                  tickFormatter={(value) => `${value}`}
-                />
-                <Tooltip 
-                  formatter={(value, name) => 
-                    name === 'Rezervime' ? value : formatCurrency(Number(value))
-                  }
-                />
-                <Legend />
-                <Line
-                  yAxisId="right"
-                  type="monotone" 
-                  dataKey="bookings" 
-                  name="Rezervime" 
-                  stroke="#9333ea"
-                  strokeWidth={6}
-                  strokeOpacity={0.8}
-                  dot={{ fill: '#9333ea', strokeWidth: 2, r: 8 }}
-                  animationDuration={300}
-                  strokeDasharray="5 5"
-                />
-                <Bar 
-                  yAxisId="left"
-                  dataKey="revenue" 
-                  name="Revenue" 
-                  fill="#16a34a" 
-                />
-                <Bar 
-                  yAxisId="left"
-                  dataKey="expenses" 
-                  name="Shpenzime" 
-                  fill="#dc2626" 
-                />
-              </BarChart>
-            </ResponsiveContainer>
+            <AreaChart
+  data={financialData.monthlyCashFlow}
+  margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
+>
+  <CartesianGrid strokeDasharray="3 3" />
+  <XAxis dataKey="month" />
+  {/* Primary Y-axis for financial data (left side) */}
+  <YAxis
+    yAxisId="left"
+    tickFormatter={(value) => `€${value}`} // Adjust formatting as needed
+    label={{ value: 'Finance (EUR)', angle: -90, position: 'insideLeft' }}
+  />
+  {/* Secondary Y-axis for bookings count (right side) */}
+  <YAxis
+    yAxisId="right"
+    orientation="right"
+    label={{ value: 'Bookings Count', angle: 90, position: 'insideRight' }}
+    domain={[0, 'dataMax + 1']} // Scales based on booking data
+  />
+  <Tooltip
+    formatter={(value, name) => {
+      if (name === 'Revenue' || name === 'Expenses') {
+        return `€${value}`; // Format financial data as currency
+      } else {
+        return value; // Show bookings as plain numbers
+      }
+    }}
+  />
+  <Legend />
+  {/* Revenue Area */}
+  <Area
+    type="monotone"
+    dataKey="revenue"
+    name="Revenue"
+    stackId="1"
+    stroke="#16a34a"
+    fill="#16a34a"
+    yAxisId="left"
+  />
+  {/* Expenses Area */}
+  <Area
+    type="monotone"
+    dataKey="expenses"
+    name="Expenses"
+    stackId="0"
+    stroke="#dc2626"
+    fill="#dc2626"
+    yAxisId="left"
+  />
+  {/* Bookings Area on secondary Y-axis */}
+  <Area
+    type="monotone"
+    dataKey="bookings"
+    name="Bookings"
+    stroke="#9333ea"
+    fill="none"
+    yAxisId="right"
+  />
+</AreaChart>
+          </ResponsiveContainer>
           )}
         </div>
       </div>
@@ -457,20 +477,24 @@ useEffect(() => {
         <h2 className="text-xl font-semibold mb-4">Kesh-Flow per periudhen</h2>
         <div className="overflow-x-auto">
           <table className="w-full">
-            <thead>
+            <thead className="sticky top-0 bg-white z-10 border-b shadow-md">
               <tr className="border-b">
                 <th className="text-right py-3 px-4">Muaji</th>
+                <th className="text-right py-3 px-4">Rezervime</th>
                 <th className="text-right py-3 px-4">Parapagim</th>
-                <th className="text-right py-3 px-4">Per tPaguar</th>
+                <th className="text-right py-3 px-4">Per Pages</th>
+                <th className="text-right py-3 px-4">Shpenzime</th>
                 <th className="text-right py-3 px-4">Total</th>
               </tr>
             </thead>
-            <tbody>
-              {financialData?.monthlyCashFlow.map((monthData) => (
-                <tr key={monthData.month} className="border-b hover:bg-gray-50">
+            <tbody className="relative w-full max-h-96 overflow-y-auto border-t">
+            {financialData?.monthlyCashFlow.map((monthData) => (
+                  <tr key={monthData.month} className="border-b hover:bg-gray-50">
                   <td className="text-left py-3 px-4">{monthData.month}</td>
+                  <td className="text-right py-3 px-4">{monthData.bookings}</td>
                   <td className="text-right py-3 px-4">{formatCurrency(monthData.prepaid)}</td>
                   <td className="text-right py-3 px-4">{formatCurrency(monthData.paid)}</td>
+                  <td className="text-right py-3 px-4">{formatCurrency(monthData.expenses)}</td>
                   <td className="text-right py-3 px-4 font-medium">
                     {formatCurrency(monthData.prepaid + monthData.paid)}
                   </td>
