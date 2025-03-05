@@ -19,6 +19,7 @@ interface BookingDetailsProps {
         checkin_time?: string;  // Added optional check-in time
         checkout_time?: string; // Added optional check-out time
         notes?: string;
+        source: string; // Added field
     };
 }
 
@@ -82,6 +83,12 @@ const BookingDetails = ({ booking }: BookingDetailsProps) => {
                     <span className="text-sm text-gray-900">{formatAmount(remainingAmount)}</span>
                 </div>
             </div>
+            <div className="border-t border-gray-200 pt-4">
+    <div className="flex justify-between items-center">
+        <span className="text-sm font-medium text-gray-500">Source</span>
+        <span className="text-sm text-gray-900">{booking.source}</span>
+    </div>
+</div>
 
             {booking.notes && (
                 <div className="border-t border-gray-200 pt-4">

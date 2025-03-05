@@ -9,6 +9,7 @@ export interface Booking {
     amount: number;
     prepayment: number;
     notes: string;
+    source: string;
   }
   
   export interface CalendarEvent {

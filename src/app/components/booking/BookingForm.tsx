@@ -22,7 +22,8 @@ const BookingForm = ({ onSuccess, onCancel, booking, mode }: BookingFormProps) =
         guest_phone: '',
         amount: 0,
         prepayment: 0,
-        notes: ''
+        notes: '',
+        source: 'Direkt' // Default source
     });
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [seasonalPricing, setSeasonalPricing] = useState<SeasonalPricing[]>([]);
@@ -139,7 +140,8 @@ const BookingForm = ({ onSuccess, onCancel, booking, mode }: BookingFormProps) =
                 guest_phone: newBooking.guest_phone,
                 amount: newBooking.amount,
                 prepayment: newBooking.prepayment,
-                notes: newBooking.notes
+                notes: newBooking.notes,
+                source: newBooking.source
             };
 
             if (mode === 'edit' && booking?.id) {
@@ -268,6 +270,18 @@ const BookingForm = ({ onSuccess, onCancel, booking, mode }: BookingFormProps) =
                     rows={3}
                 />
             </div>
+            <div className="space-y-2">
+    <label className="block text-sm font-medium text-gray-700">Source</label>
+    <select
+        value={newBooking.source}
+        onChange={(e) => setNewBooking({ ...newBooking, source: e.target.value })}
+        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-[#FF385C] focus:border-[#FF385C] transition-colors"
+    >
+        <option value="Booking">Booking</option>
+        <option value="Airbnb">Airbnb</option>
+        <option value="Direkt">Direkt</option>
+    </select>
+</div>
             <div className="flex gap-3 mt-6">
                 <button
                     onClick={handleSubmit}

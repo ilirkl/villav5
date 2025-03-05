@@ -2,13 +2,15 @@ export interface Booking {
     id: string;
     start_date: string;
     end_date: string;
-    checkin_time?: string; 
-    checkout_time?: string; 
+    checkin_time?: string;
+    checkout_time?: string;
     guest_name: string;
     guest_phone: string;
     amount: number;
     prepayment: number;
     notes: string;
+    user_id?: string; // Optional, matches schema (NULL allowed, defaults to auth.uid())
+    source: string; // Added field
 }
 
 export interface SeasonalPricing {
