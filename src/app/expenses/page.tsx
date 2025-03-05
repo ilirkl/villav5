@@ -1,5 +1,5 @@
 import React from 'react';
-import Expense from '../components/expense/Expense';
+import Expense from '../components/Expense';
 
 export default function ExpensesPage() {
     return (
