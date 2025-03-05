@@ -171,10 +171,10 @@ useEffect(() => {
     startDate: string,
     endDate: string
   ): FinancialData => {
-    const netProfit = bookings.reduce((sum, booking) => sum + booking.amount, 0);
-    const totalPrepaid = bookings.reduce((sum, booking) => sum + booking.prepayment, 0);
-    const totalPaid = netProfit;
+    const totalPaid = bookings.reduce((sum, booking) => sum + booking.amount, 0); 
     const totalExpenses = expenses.reduce((sum, expense) => sum + expense.amount, 0);
+    const totalPrepaid = bookings.reduce((sum, booking) => sum + booking.prepayment, 0);
+    const netProfit = totalPaid - totalExpenses;
 
     const bookingDates = bookings.map(b => new Date(b.start_date).getTime());
     const start = startDate ? new Date(startDate) : new Date(Math.min(...bookingDates));
