@@ -12,7 +12,6 @@ interface BookingFormProps {
 }
 
 const BookingForm = ({ onSuccess, onCancel, booking, mode }: BookingFormProps) => {
-    // Initialize state with checkin_time and checkout_time
     const [newBooking, setNewBooking] = useState<Booking>({
         id: '',
         start_date: '',
@@ -28,13 +27,12 @@ const BookingForm = ({ onSuccess, onCancel, booking, mode }: BookingFormProps) =
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [seasonalPricing, setSeasonalPricing] = useState<SeasonalPricing[]>([]);
 
-    // Populate form with existing booking data in edit mode
     useEffect(() => {
         if (mode === 'edit' && booking) {
             setNewBooking({
                 ...booking,
-                checkin_time: booking.checkin_time || '', // Use '' if null
-                checkout_time: booking.checkout_time || '', // Use '' if null
+                checkin_time: booking.checkin_time || '',
+                checkout_time: booking.checkout_time || '',
             });
         }
         fetchSeasonalPricing();
@@ -56,28 +54,22 @@ const BookingForm = ({ onSuccess, onCancel, booking, mode }: BookingFormProps) =
 
     const calculateTotalAmount = (startDate: string, endDate: string): number => {
         if (!startDate || !endDate) return 0;
-
         const start = new Date(startDate);
         const end = new Date(endDate);
         let totalAmount = 0;
         const currentDate = new Date(start);
-
         while (currentDate < end) {
             const dayOfWeek = currentDate.getDay();
             const dateString = currentDate.toISOString().split('T')[0];
-
             const applicablePricing = seasonalPricing.find(pricing => 
                 dateString >= pricing.start_date && dateString <= pricing.end_date
             );
-
             if (applicablePricing) {
                 const dayPrice = getDayPrice(applicablePricing, dayOfWeek);
                 totalAmount += dayPrice;
             }
-
             currentDate.setDate(currentDate.getDate() + 1);
         }
-
         return totalAmount;
     };
 
@@ -95,11 +87,11 @@ const BookingForm = ({ onSuccess, onCancel, booking, mode }: BookingFormProps) =
     };
 
     useEffect(() => {
-        if (newBooking.start_date && newBooking.end_date) {
+        if (mode === 'create' && newBooking.start_date && newBooking.end_date) {
             const totalAmount = calculateTotalAmount(newBooking.start_date, newBooking.end_date);
             setNewBooking(prev => ({ ...prev, amount: totalAmount }));
         }
-    }, [newBooking.start_date, newBooking.end_date, seasonalPricing]);
+    }, [mode, newBooking.start_date, newBooking.end_date, seasonalPricing]);
 
     const validateForm = () => {
         if (!newBooking.guest_name.trim()) {
@@ -138,12 +130,11 @@ const BookingForm = ({ onSuccess, onCancel, booking, mode }: BookingFormProps) =
 
         setIsSubmitting(true);
         try {
-            // Include checkin_time and checkout_time, converting '' to null
             const bookingData: Omit<Booking, 'id'> = {
                 start_date: newBooking.start_date,
                 end_date: newBooking.end_date,
-                checkin_time: newBooking.checkin_time ?? undefined, // Use ?? instead of ||
-                checkout_time: newBooking.checkout_time ?? undefined, // Use ?? instead of ||
+                checkin_time: newBooking.checkin_time || null,
+                checkout_time: newBooking.checkout_time || null,
                 guest_name: newBooking.guest_name,
                 guest_phone: newBooking.guest_phone,
                 amount: newBooking.amount,
@@ -179,6 +170,7 @@ const BookingForm = ({ onSuccess, onCancel, booking, mode }: BookingFormProps) =
 
     return (
         <div className="space-y-4 px-4 py-3">
+            {/* Form fields remain unchanged */}
             <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                     <label className="block text-sm font-medium text-gray-700">Guest Name*</label>
