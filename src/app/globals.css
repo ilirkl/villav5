@@ -1,6 +1,7 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
 @media print {
   body {
     background-color: white !important;
@@ -24,7 +25,7 @@ body {
 /* FullCalendar Customization */
 .calendar-container .fc {
   /* General calendar styles */
-  @apply font-sans;
+  font-family: 'Inter', sans-serif;
 }
 
 .calendar-container .fc-toolbar-title {
