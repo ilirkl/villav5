@@ -1,0 +1,5 @@
+name = "villav5"
+type = "pages"
+build = {
+  command = "npm run pages:build"
+}
