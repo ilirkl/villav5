@@ -1,5 +1,3 @@
 name = "villav5"
-type = "pages"
-build = {
-  command = "npm run pages:build"
-}
+pages_build_output_dir = "./.next"
+compatibility_date = "2025-03-06"
