@@ -14,6 +14,9 @@ import {
   ResponsiveContainer,
 } from 'recharts';
 
+export const dynamic = 'force-dynamic';
+
+
 interface FinancialData {
   netProfit: number;
   totalPrepaid: number;

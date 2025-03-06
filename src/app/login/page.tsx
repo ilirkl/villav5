@@ -5,6 +5,8 @@ import { supabase } from '../../utils/supabaseClient';
 import Link from 'next/link';
 
 console.log('Environment Variables in /login:', process.env);
+export const dynamic = 'force-dynamic';
+
 
 
 export default function LoginPage() {
