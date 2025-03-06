@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "pages:build": "next build && next-on-pages build",
+    "pages:build": "NEXT_PUBLIC_SUPABASE_URL=$NEXT_PUBLIC_SUPABASE_URL NEXT_PUBLIC_SUPABASE_ANON_KEY=$NEXT_PUBLIC_SUPABASE_ANON_KEY next build && next-on-pages build",
     "preview": "next-on-pages dev"
   },
   "dependencies": {
@@ -23,7 +23,6 @@
     "@supabase/auth-helpers-nextjs": "^0.10.0",
     "@supabase/ssr": "^0.5.2",
     "@supabase/supabase-js": "^2.49.1",
-    "@tailwindcss/postcss": "^4.0.10",
     "autotable": "^1.0.0",
     "browser-image-compression": "^2.0.2",
     "canvg": "^4.0.2",
