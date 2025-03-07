@@ -442,7 +442,7 @@ export default function RevenuePage() {
         <div className="bg-white p-4 rounded-lg shadow">
           <h3 className="text-sm font-medium text-gray-500">Occupancy</h3>
           <p className="text-2xl font-semibold text-blue-600">
-            {financialData?.overallOccupancy.toFixed(2)}%
+            {financialData?.overallOccupancy.toFixed(0)}%
           </p>
         </div>
         <div className="bg-white p-4 rounded-lg shadow">
