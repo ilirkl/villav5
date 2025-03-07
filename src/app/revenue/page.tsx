@@ -14,8 +14,6 @@ import {
   ResponsiveContainer,
 } from 'recharts';
 
-export const dynamic = 'force-dynamic';
-
 // Define interfaces
 interface FinancialData {
   netProfit: number;

@@ -4,11 +4,6 @@ import React, { useState } from 'react';
 import { supabase } from '../../utils/supabaseClient';
 import Link from 'next/link';
 
-console.log('Environment Variables in /login:', process.env);
-export const dynamic = 'force-dynamic';
-
-
-
 export default function LoginPage() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
