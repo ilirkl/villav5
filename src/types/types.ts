@@ -35,6 +35,7 @@ export interface Expense {
     description: string;
     created_at: string;
     user_id: string;
+    months: string[];
 }
 
 export interface profiles {

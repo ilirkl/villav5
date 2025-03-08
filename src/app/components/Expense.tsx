@@ -15,6 +15,7 @@ interface Expense {
   description: string;
   created_at: string;
   user_id: string;
+  months: string[];
 }
 
 const stringToColor = (str: string) => {
@@ -145,7 +146,7 @@ const Expense = () => {
       // Base query
       let query = supabase
         .from('expenses')
-        .select('id, date, category, amount, description, user_id')
+        .select('id, date, category, amount, description, user_id, months')
         .eq('user_id', userId);
 
       // Apply filters
@@ -321,7 +322,7 @@ const Expense = () => {
               sortBy === 'date' ? 'bg-[#FF385C] text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
             }`}
           >
-            Date {sortBy === 'date' && (sortOrder === 'asc' ? <FiArrowUp className="inline ml-1" /> : <FiArrowDown className="inline ml-1" />)}
+            Data {sortBy === 'date' && (sortOrder === 'asc' ? <FiArrowUp className="inline ml-1" /> : <FiArrowDown className="inline ml-1" />)}
           </button>
           <button
             onClick={() => handleSort('description')}
@@ -329,7 +330,7 @@ const Expense = () => {
               sortBy === 'description' ? 'bg-[#FF385C] text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
             }`}
           >
-            Description {sortBy === 'description' && (sortOrder === 'asc' ? <FiArrowUp className="inline ml-1" /> : <FiArrowDown className="inline ml-1" />)}
+            Pershkrimi {sortBy === 'description' && (sortOrder === 'asc' ? <FiArrowUp className="inline ml-1" /> : <FiArrowDown className="inline ml-1" />)}
           </button>
         </div>
         <div className="flex items-center gap-2">
@@ -350,7 +351,7 @@ const Expense = () => {
             onChange={(e) => setSelectedCategory(e.target.value)}
             className="border border-gray-300 rounded p-2 text-sm focus:ring-[#FF385C] focus:border-[#FF385C]"
           >
-            <option value="all">All Categories</option>
+            <option value="all">Gjitha</option>
             {categories.map((category) => (
               <option key={category} value={category}>
                 {category}
@@ -370,6 +371,10 @@ const Expense = () => {
       </button>
 
       <div className="space-y-4">
+      <div className="mt-4 font-bold text-gray-800">
+        Total Expenses: {formatAmount(totalExpenses)}
+      </div>
+
         {expenses.length === 0 && !isLoading ? (
           <div className="text-center py-8">
             <p className="text-gray-500">No expenses found. Add your first expense!</p>
@@ -382,19 +387,36 @@ const Expense = () => {
               onClick={() => toggleExpand(expense.id)}
             >
               <div className="flex flex-col sm:flex-row justify-between gap-4">
-                <div className="flex-1 flex justify-between items-center">
-                  <h3 className="text-lg font-semibold text-gray-800">{expense.description}</h3>
+                <div className="flex-1 flex justify-between items-center ">
+                  <h3 className="text-lg font-semibold text-gray-800  ">{expense.description}</h3>
                   <p className="text-xl font-bold text-[#FF385C]">{formatAmount(expense.amount)}</p>
                 </div>
                 {expandedExpenseId === expense.id && (
                   <div className="flex-1 space-y-3">
-                    <p className="text-gray-600 text-sm">{formatDate(expense.date)}</p>
+                    
+                    <div className="flex justify-between items-center border-t border-gray-200 pt-4">
+                      <p className="text-gray-600 text-sm">{formatDate(expense.date)}</p></div>
+                      <div className="border-t border-gray-200 pt-4">
+
+                      <div className="flex justify-between items-center">
                     <p
                       className="px-2 py-1 rounded-full text-xs font-medium text-gray-800 inline-block"
                       style={{ backgroundColor: stringToColor(expense.category) }}
                     >
                       {expense.category}
                     </p>
+                    {(expense.months || []).map((month, index) => (
+  <span
+    key={index}
+    className="px-2 py-1 rounded-full text-xs text-right font-medium text-gray-800 inline-block m-1"
+    style={{ backgroundColor: stringToColor(expense.category) }}
+  >
+    {month}
+  </span>
+))}
+                    
+                    
+                    </div></div>
                     <div className="flex justify-end gap-2">
                       <button
                         onClick={(e) => {
@@ -440,9 +462,7 @@ const Expense = () => {
         {isLoading && <p className="text-center text-gray-500 py-4">Loading more expenses...</p>}
       </div>
 
-      <div className="mt-4 font-bold text-gray-800">
-        Total Expenses: {formatAmount(totalExpenses)}
-      </div>
+      
 
       <Modal
         isOpen={isModalOpen}

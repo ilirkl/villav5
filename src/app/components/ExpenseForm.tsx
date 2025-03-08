@@ -2,15 +2,17 @@
 
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../../utils/supabaseClient';
-import { Expense } from '../../types/types'; // Import the shared Expense type
+import { Expense } from '../../types/types'; // Assuming Expense type includes months: string[]
 
+/** Props for the ExpenseForm component */
 interface ExpenseFormProps {
-    onSuccess: () => void;
-    onCancel: () => void;
-    expense?: Expense; // Use the shared Expense type
-    mode: 'create' | 'edit';
+    onSuccess: () => void;    // Callback on successful submission
+    onCancel: () => void;     // Callback to cancel the form
+    expense?: Expense;        // Optional expense object for edit mode
+    mode: 'create' | 'edit';  // Mode of the form: create or edit
 }
 
+/** List of expense categories */
 const EXPENSE_CATEGORIES = [
     'Mirembajtje',
     'Komunalite',
@@ -23,22 +25,59 @@ const EXPENSE_CATEGORIES = [
     'Tjera'
 ];
 
+/** List of months for selection */
+const MONTHS = [
+    'Janar', 'Shkurt', 'Mars', 'Prill', 'Maj', 'Qershor',
+    'Korrik', 'Gusht', 'Shtator', 'Tetor', 'Nentor', 'Dhjetor'
+];
+
+/**
+ * ExpenseForm component for creating or editing expenses
+ */
 const ExpenseForm = ({ onSuccess, onCancel, expense, mode }: ExpenseFormProps) => {
+    // State for the expense form data
     const [newExpense, setNewExpense] = useState<Partial<Expense>>({
         date: '',
         category: '',
         amount: 0,
-        description: ''
+        description: '',
+        months: [] // Initialized as an empty array for selected months
     });
+
+    // State to track form submission status
     const [isSubmitting, setIsSubmitting] = useState(false);
 
+    // Effect to populate form with existing expense data in edit mode
     useEffect(() => {
         if (mode === 'edit' && expense) {
-            console.log('Setting initial expense data:', expense);
-            setNewExpense(expense); // Set the full expense object for editing
+            console.log('Editing expense with months:', expense.months); // Debug log
+            setNewExpense({
+                ...expense,
+                months: expense.months || [] // Ensure months is an array, even if null
+            });
         }
     }, [mode, expense]);
 
+    /**
+     * Handles checkbox changes for months
+     * @param month - The month being toggled
+     * @param isChecked - Whether the checkbox is checked
+     */
+    const handleMonthChange = (month: string, isChecked: boolean) => {
+        setNewExpense(prev => ({
+            ...prev,
+            months: isChecked
+                ? prev.months?.includes(month)
+                    ? prev.months // If already included, no change
+                    : [...(prev.months || []), month] // Add month if not present
+                : (prev.months || []).filter(m => m !== month) // Remove month
+        }));
+    };
+
+    /**
+     * Validates the form data before submission
+     * @returns boolean - True if valid, false otherwise
+     */
     const validateForm = () => {
         if (!newExpense.category) {
             alert('Please select a category');
@@ -59,58 +98,48 @@ const ExpenseForm = ({ onSuccess, onCancel, expense, mode }: ExpenseFormProps) =
         return true;
     };
 
+    /**
+     * Handles form submission to create or update an expense
+     */
     const handleSubmit = async () => {
         if (!validateForm()) return;
-        
+
         setIsSubmitting(true);
         try {
             if (mode === 'edit' && expense?.id) {
-                console.log('Attempting to update expense:', {
-                    id: expense.id,
-                    updates: {
-                        date: newExpense.date,
-                        category: newExpense.category,
-                        amount: newExpense.amount,
-                        description: newExpense.description
-                    }
-                });
-
-                // Perform the update
+                // Update existing expense
                 const { error: updateError } = await supabase
                     .from('expenses')
                     .update({
                         date: newExpense.date,
                         category: newExpense.category,
                         amount: newExpense.amount,
-                        description: newExpense.description
+                        description: newExpense.description,
+                        months: newExpense.months
                     })
                     .eq('id', expense.id);
 
                 if (updateError) {
                     throw updateError;
                 }
-
-                console.log('Successfully updated expense');
             } else {
-                console.log('Creating new expense:', newExpense);
-
+                // Insert new expense
                 const { error: insertError } = await supabase
                     .from('expenses')
                     .insert([{
                         date: newExpense.date,
                         category: newExpense.category,
                         amount: newExpense.amount,
-                        description: newExpense.description
+                        description: newExpense.description,
+                        months: newExpense.months
                     }]);
 
                 if (insertError) {
                     throw insertError;
                 }
-
-                console.log('Successfully created expense');
             }
 
-            onSuccess();
+            onSuccess(); // Call success callback
         } catch (error) {
             console.error('Error saving expense:', error);
             alert(`Error saving expense: ${error instanceof Error ? error.message : 'Unknown error'}`);
@@ -121,7 +150,9 @@ const ExpenseForm = ({ onSuccess, onCancel, expense, mode }: ExpenseFormProps) =
 
     return (
         <div className="space-y-4 px-4 py-3">
+            {/* Grid for category, date, and amount */}
             <div className="grid grid-cols-3 gap-4">
+                {/* Category Selection */}
                 <div className="space-y-2">
                     <label className="block text-sm font-medium text-gray-700">Kategoria*</label>
                     <select
@@ -138,6 +169,8 @@ const ExpenseForm = ({ onSuccess, onCancel, expense, mode }: ExpenseFormProps) =
                         ))}
                     </select>
                 </div>
+
+                {/* Date Input */}
                 <div className="space-y-2">
                     <label className="block text-sm font-medium text-gray-700">Data*</label>
                     <input
@@ -148,6 +181,8 @@ const ExpenseForm = ({ onSuccess, onCancel, expense, mode }: ExpenseFormProps) =
                         required
                     />
                 </div>
+
+                {/* Amount Input */}
                 <div className="space-y-2">
                     <label className="block text-sm font-medium text-gray-700">Shuma*</label>
                     <input
@@ -162,6 +197,8 @@ const ExpenseForm = ({ onSuccess, onCancel, expense, mode }: ExpenseFormProps) =
                     />
                 </div>
             </div>
+
+            {/* Description Textarea */}
             <div className="space-y-2">
                 <label className="block text-sm font-medium text-gray-700">Pershkrimi *</label>
                 <textarea
@@ -173,6 +210,26 @@ const ExpenseForm = ({ onSuccess, onCancel, expense, mode }: ExpenseFormProps) =
                     required
                 />
             </div>
+
+            {/* Months Checkboxes */}
+            <div className="space-y-2">
+                <label className="block text-sm font-medium text-gray-700">Muajt</label>
+                <div className="grid grid-cols-3 gap-2">
+                    {MONTHS.map(month => (
+                        <label key={month} className="flex items-center space-x-2">
+                            <input
+                                type="checkbox"
+                                checked={newExpense.months?.includes(month) || false}
+                                onChange={(e) => handleMonthChange(month, e.target.checked)}
+                                className="h-4 w-4 text-[#FF385C] border-gray-300 rounded focus:ring-[#FF385C]"
+                            />
+                            <span className="text-sm text-gray-700">{month}</span>
+                        </label>
+                    ))}
+                </div>
+            </div>
+
+            {/* Form Buttons */}
             <div className="flex gap-3 mt-6">
                 <button
                     onClick={handleSubmit}
