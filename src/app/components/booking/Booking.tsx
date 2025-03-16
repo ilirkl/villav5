@@ -49,6 +49,7 @@ const Booking = () => {
   const [modalMode, setModalMode] = useState<'create' | 'edit'>('create');
   const [startDate, setStartDate] = useState<string>('');
   const [endDate, setEndDate] = useState<string>('');
+  const [sourceFilter, setSourceFilter] = useState<string>('');
   const [sortBy, setSortBy] = useState<'date' | 'name' | 'amount'>('date');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
   const limit = 10;
@@ -84,6 +85,7 @@ const Booking = () => {
 
         if (startDate) query = query.gte('start_date', startDate);
         if (endDate) query = query.lte('end_date', endDate);
+        if (sourceFilter) query = query.eq('source', sourceFilter);
 
         switch (sortBy) {
           case 'date':
@@ -118,7 +120,7 @@ const Booking = () => {
       }
     },
     // Only include dependencies that should trigger a new fetch
-    [startDate, endDate, sortBy, sortOrder, offset, hasMore, isLoading]
+    [startDate, endDate, sourceFilter, sortBy, sortOrder, offset, hasMore, isLoading]
   );
 
   // Reset effect when filters change (we intentionally exclude fetchBookings to avoid a loop)
@@ -128,7 +130,7 @@ const Booking = () => {
     setHasMore(true);
     fetchBookings(true);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [startDate, endDate, sortBy, sortOrder]);
+  }, [startDate, endDate, sourceFilter, sortBy, sortOrder]);
 
   // Initial load
   useEffect(() => {
@@ -229,7 +231,7 @@ const Booking = () => {
     <div className="max-w-6xl mx-auto px-4 py-8">
       {/* Filter inputs and sort buttons */}
       <div className="mb-6 flex flex-col sm:flex-row gap-4 items-center justify-between">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           <input
             type="date"
             value={startDate}
@@ -242,6 +244,16 @@ const Booking = () => {
             onChange={(e) => setEndDate(e.target.value)}
             className="border border-gray-300 rounded p-2 text-sm focus:ring-[#FF385C] focus:border-[#FF385C]"
           />
+          <select
+            value={sourceFilter}
+            onChange={(e) => setSourceFilter(e.target.value)}
+            className="border border-gray-300 rounded p-2 text-sm focus:ring-[#FF385C] focus:border-[#FF385C]"
+          >
+            <option value="">All Sources</option>
+            <option value="Direkt">Direkt</option>
+            <option value="Airbnb">Airbnb</option>
+            <option value="Booking">Booking</option>
+          </select>
           <button
             onClick={() => handleSort('date')}
             className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${

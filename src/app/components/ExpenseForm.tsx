@@ -22,7 +22,8 @@ const EXPENSE_CATEGORIES = [
     'Sigurimi',
     'Marketing',
     'Riparime',
-    'Tjera'
+    'Tjera',
+    'Komision'
 ];
 
 /** List of months for selection */

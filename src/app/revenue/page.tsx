@@ -14,7 +14,7 @@ import {
   ResponsiveContainer,
 } from 'recharts';
 
-// Define interfaces
+// ### Interfaces
 interface FinancialData {
   netProfit: number;
   totalPrepaid: number;
@@ -23,6 +23,9 @@ interface FinancialData {
   bookingsCount: number;
   overallOccupancy: number;
   totalDaysBooked: number;
+  totalDirektRevenue: number;      // Total revenue from Direkt
+  totalAirbnbRevenue: number;      // Total revenue from Airbnb
+  totalBookingRevenue: number;     // Total revenue from Booking
   monthlyCashFlow: Array<{
     month: string;
     prepaid: number;
@@ -33,6 +36,9 @@ interface FinancialData {
     occupancy: number;
     daysBooked: number;
     netProfit: number;
+    direktRevenue: number;         // Monthly revenue from Direkt
+    airbnbRevenue: number;         // Monthly revenue from Airbnb
+    bookingRevenue: number;        // Monthly revenue from Booking
   }>;
 }
 
@@ -42,7 +48,7 @@ interface Expense {
   date: string;
 }
 
-// Utility function to format currency
+// ### Utility Functions
 const formatCurrency = (amount: number) => {
   return new Intl.NumberFormat('en-US', {
     style: 'currency',
@@ -52,7 +58,7 @@ const formatCurrency = (amount: number) => {
   }).format(amount);
 };
 
-// Main component
+// ### Main Component
 export default function RevenuePage() {
   const [financialData, setFinancialData] = useState<FinancialData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -61,7 +67,7 @@ export default function RevenuePage() {
   const [timePeriod, setTimePeriod] = useState<'1M' | '6M' | '1Y' | 'F1M' | 'F6M' | 'F1Y'>('1M');
   const [tableVisible, setTableVisible] = useState(true);
 
-  // Fetch financial data
+  // Fetch financial data from Supabase
   const fetchFinancialData = useCallback(async () => {
     try {
       const { data: bookings, error: bookingsError } = await supabase
@@ -110,7 +116,7 @@ export default function RevenuePage() {
     }
   }, [startDate, endDate]);
 
-  // Get date range based on time period
+  // Determine date range based on selected time period
   const getDateRange = (period: '1M' | '6M' | '1Y' | 'F1M' | 'F6M' | 'F1Y') => {
     const today = new Date();
     const start = new Date(today);
@@ -142,24 +148,36 @@ export default function RevenuePage() {
     };
   };
 
-  // Set date range on time period change
+  // Update date range when time period changes
   useEffect(() => {
     const { start, end } = getDateRange(timePeriod);
     setStartDate(start);
     setEndDate(end);
   }, [timePeriod]);
 
-  // Fetch data when startDate or endDate changes
+  // Fetch data when date range changes
   useEffect(() => {
     fetchFinancialData();
   }, [fetchFinancialData]);
 
-  // Export financial data to CSV
+  // Export data to CSV
   const exportToCSV = () => {
     if (!financialData) return;
 
     const csvContent = [
-      ['Month', 'Bookings', 'Prepayment', 'Total Amount', 'Expenses', 'Net Profit', 'Occupancy %', 'Days Booked'],
+      [
+        'Month',
+        'Bookings',
+        'Prepayment',
+        'Total Amount',
+        'Expenses',
+        'Net Profit',
+        'Occupancy %',
+        'Days Booked',
+        '% Direkt',    // Percentage of revenue from Direkt
+        '% Airbnb',    // Percentage of revenue from Airbnb
+        '% Booking',   // Percentage of revenue from Booking
+      ],
       ...financialData.monthlyCashFlow.map(month => [
         month.month,
         month.bookings,
@@ -169,6 +187,9 @@ export default function RevenuePage() {
         month.netProfit,
         month.occupancy.toFixed(2),
         month.daysBooked,
+        month.revenue > 0 ? ((month.direktRevenue / month.revenue) * 100).toFixed(1) : 0,
+        month.revenue > 0 ? ((month.airbnbRevenue / month.revenue) * 100).toFixed(1) : 0,
+        month.revenue > 0 ? ((month.bookingRevenue / month.revenue) * 100).toFixed(1) : 0,
       ]),
     ]
       .map(row => row.join(','))
@@ -200,6 +221,7 @@ export default function RevenuePage() {
 
     const months = getMonthsBetween(start, end);
 
+    // Initialize monthly data with source revenues
     const monthlyData = months.map(month => ({
       month: month.monthKey,
       prepaid: 0,
@@ -210,10 +232,19 @@ export default function RevenuePage() {
       occupancy: 0,
       daysBooked: 0,
       netProfit: 0,
+      direktRevenue: 0,      // Monthly revenue from Direkt
+      airbnbRevenue: 0,      // Monthly revenue from Airbnb
+      bookingRevenue: 0,     // Monthly revenue from Booking
       relevantStart: month.monthStart,
       relevantEnd: month.monthEnd,
     }));
 
+    // Track total revenues by source
+    let totalDirektRevenue = 0;
+    let totalAirbnbRevenue = 0;
+    let totalBookingRevenue = 0;
+
+    // Process bookings and accumulate revenues
     financialBookings.forEach(booking => {
       const bookingMonth = new Date(booking.start_date).toLocaleString('default', {
         year: '2-digit',
@@ -225,9 +256,22 @@ export default function RevenuePage() {
         monthData.paid += booking.amount - booking.prepayment;
         monthData.revenue += booking.amount;
         monthData.bookings += 1;
+
+        // Accumulate revenue by source
+        if (booking.source === 'Direkt') {
+          monthData.direktRevenue += booking.amount;
+          totalDirektRevenue += booking.amount;
+        } else if (booking.source === 'Airbnb') {
+          monthData.airbnbRevenue += booking.amount;
+          totalAirbnbRevenue += booking.amount;
+        } else if (booking.source === 'Booking') {
+          monthData.bookingRevenue += booking.amount;
+          totalBookingRevenue += booking.amount;
+        }
       }
     });
 
+    // Process expenses
     expenses.forEach(expense => {
       const expenseMonth = new Date(expense.date).toLocaleString('default', {
         year: '2-digit',
@@ -239,6 +283,7 @@ export default function RevenuePage() {
       }
     });
 
+    // Calculate occupancy and net profit per month
     monthlyData.forEach(month => {
       const { percentage, daysBooked } = calculateOccupancy(occupancyBookings, month.relevantStart, month.relevantEnd);
       month.occupancy = percentage;
@@ -256,6 +301,9 @@ export default function RevenuePage() {
       bookingsCount: financialBookings.length,
       overallOccupancy,
       totalDaysBooked,
+      totalDirektRevenue,
+      totalAirbnbRevenue,
+      totalBookingRevenue,
       monthlyCashFlow: monthlyData.map(month => ({
         month: month.month,
         prepaid: month.prepaid,
@@ -266,6 +314,9 @@ export default function RevenuePage() {
         occupancy: month.occupancy,
         daysBooked: month.daysBooked,
         netProfit: month.netProfit,
+        direktRevenue: month.direktRevenue,
+        airbnbRevenue: month.airbnbRevenue,
+        bookingRevenue: month.bookingRevenue,
       })),
     };
   };
@@ -285,7 +336,7 @@ export default function RevenuePage() {
     return months;
   }
 
-  // Calculate occupancy and days booked
+  // Calculate occupancy percentage and days booked
   function calculateOccupancy(bookings: Booking[], relevantStart: Date, relevantEnd: Date): { percentage: number, daysBooked: number } {
     const occupiedDays = new Set<string>();
     bookings.forEach(booking => {
@@ -496,21 +547,25 @@ export default function RevenuePage() {
         </button>
       </div>
 
-      {/* Monthly Cash Flow Table - Fixed Whitespace Issue */}
+      {/* Monthly Cash Flow Table */}
       <div className={`bg-white rounded-lg shadow p-6 ${!tableVisible && 'hidden'}`}>
         <h2 className="text-xl font-semibold mb-4">Kesh-Flow</h2>
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead className="sticky top-0 bg-white z-10 border-b shadow-md">
-              <tr className="border-b"><th className="text-right py-3 px-4">Muaji</th>
-              <th className="text-right py-3 px-4">Rezervime</th>
-              <th className="text-right py-3 px-4">Dite</th>
-              <th className="text-right py-3 px-4">Occupancy</th>
-              <th className="text-right py-3 px-4">Parapagim</th>
-              <th className="text-right py-3 px-4">Paguar</th>
-              <th className="text-right py-3 px-4">Shpenzime</th>
-              <th className="text-right py-3 px-4">Total</th>
-              <th className="text-right py-3 px-4">Fitimi</th>
+              <tr className="border-b">
+                <th className="text-right py-3 px-4">Muaji</th>
+                <th className="text-right py-3 px-4">Rezervime</th>
+                <th className="text-right py-3 px-4">Dite</th>
+                <th className="text-right py-3 px-4">Occupancy</th>
+                <th className="text-right py-3 px-4">Parapagim</th>
+                <th className="text-right py-3 px-4">Paguar</th>
+                <th className="text-right py-3 px-4">Shpenzime</th>
+                <th className="text-right py-3 px-4">Total</th>
+                <th className="text-right py-3 px-4">Fitimi</th>
+                <th className="text-right py-3 px-4">% Direkt</th>
+                <th className="text-right py-3 px-4">% Airbnb</th>
+                <th className="text-right py-3 px-4">% Booking</th>
               </tr>
             </thead>
             <tbody className="relative w-full max-h-96 overflow-y-auto border-t">
@@ -525,7 +580,16 @@ export default function RevenuePage() {
                   <td className="text-right py-3 px-4">{formatCurrency(monthData.expenses)}</td>
                   <td className="text-right py-3 px-4 font-medium">{formatCurrency(monthData.prepaid + monthData.paid)}</td>
                   <td className="text-right py-3 px-4 font-medium">{formatCurrency(monthData.netProfit)}</td>
-                  </tr>
+                  <td className="text-right py-3 px-4">
+                    {monthData.revenue > 0 ? ((monthData.direktRevenue / monthData.revenue) * 100).toFixed(1) : 0}%
+                  </td>
+                  <td className="text-right py-3 px-4">
+                    {monthData.revenue > 0 ? ((monthData.airbnbRevenue / monthData.revenue) * 100).toFixed(1) : 0}%
+                  </td>
+                  <td className="text-right py-3 px-4">
+                    {monthData.revenue > 0 ? ((monthData.bookingRevenue / monthData.revenue) * 100).toFixed(1) : 0}%
+                  </td>
+                </tr>
               ))}
             </tbody>
           </table>
