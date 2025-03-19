@@ -5,7 +5,6 @@ import { supabase } from '../../../utils/supabaseClient';
 import Modal from '../Modal';
 import BookingForm from '../booking/BookingForm';
 import BookingInvoice from './BookingInvoice';
-import { FiArrowUp, FiArrowDown } from 'react-icons/fi';
 
 export interface Booking {
   id: string;
