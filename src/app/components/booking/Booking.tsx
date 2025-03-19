@@ -230,37 +230,66 @@ const Booking = () => {
   return (
     <div className="max-w-6xl mx-auto px-4 py-8">
       {/* Filter inputs and sort buttons */}
-      <div className="mb-6 flex flex-col sm:flex-row gap-4 items-center justify-between">
-        <div className="flex items-center gap-2 flex-wrap">
-          <input
-            type="date"
-            value={startDate}
-            onChange={(e) => setStartDate(e.target.value)}
-            className="border border-gray-300 rounded p-2 text-sm focus:ring-[#FF385C] focus:border-[#FF385C]"
-          />
-          <input
-            type="date"
-            value={endDate}
-            onChange={(e) => setEndDate(e.target.value)}
-            className="border border-gray-300 rounded p-2 text-sm focus:ring-[#FF385C] focus:border-[#FF385C]"
-          />
-          <select
-            value={sourceFilter}
-            onChange={(e) => setSourceFilter(e.target.value)}
-            className="border border-gray-300 rounded p-2 text-sm focus:ring-[#FF385C] focus:border-[#FF385C]"
-          >
-            <option value="">All Sources</option>
-            <option value="Direkt">Direkt</option>
-            <option value="Airbnb">Airbnb</option>
-            <option value="Booking">Booking</option>
-          </select>
+      <div className="mb-6 bg-gray-50 p-4 rounded-lg">
+        <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
+          <div className="flex items-center gap-2 flex-wrap w-full">
+            <div className="flex gap-2 w-full sm:w-auto">
+              <div className="relative flex-1 sm:flex-none">
+                <input
+                  type="date"
+                  value={startDate}
+                  onChange={(e) => setStartDate(e.target.value)}
+                  className="border border-gray-300 rounded-lg p-2 pl-8 text-sm focus:ring-[#FF385C] focus:border-[#FF385C] w-full"
+                  placeholder="Start date"
+                />
+                <svg className="absolute left-2 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+              </div>
+              <div className="relative flex-1 sm:flex-none">
+                <input
+                  type="date"
+                  value={endDate}
+                  onChange={(e) => setEndDate(e.target.value)}
+                  className="border border-gray-300 rounded-lg p-2 pl-8 text-sm focus:ring-[#FF385C] focus:border-[#FF385C] w-full"
+                  placeholder="End date"
+                />
+                <svg className="absolute left-2 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+              </div>
+            </div>
+            
+            
+            
+            
+          </div>
+        </div>
+        
+        <div className="mt-4 flex gap-2">
           <button
-            onClick={() => handleSort('date')}
-            className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${
-              sortBy === 'date' ? 'bg-[#FF385C] text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-            }`}
+            onClick={() => setSourceFilter('')}
+            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${sourceFilter === '' ? 'bg-gray-200' : 'bg-white'}`}
           >
-            Data {sortBy === 'date' && (sortOrder === 'asc' ? <FiArrowUp className="inline ml-1" /> : <FiArrowDown className="inline ml-1" />)}
+            All
+          </button>
+          <button
+            onClick={() => setSourceFilter('Airbnb')}
+            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${sourceFilter === 'Airbnb' ? 'bg-gray-200' : 'bg-white'}`}
+          >
+            Airbnb
+          </button>
+          <button
+            onClick={() => setSourceFilter('Booking')}
+            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${sourceFilter === 'Booking' ? 'bg-gray-200' : 'bg-white'}`}
+          >
+            Booking
+          </button>
+          <button
+            onClick={() => setSourceFilter('Direkt')}
+            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${sourceFilter === 'Direkt' ? 'bg-gray-200' : 'bg-white'}`}
+          >
+            Direct
           </button>
         </div>
       </div>
@@ -289,20 +318,26 @@ const Booking = () => {
               onClick={() => toggleExpand(booking.id)}
             >
               <div className="flex flex-col sm:flex-row justify-between gap-4">
-                <div className="flex-1 flex justify-between items-center">
+                <div className="flex-1 flex justify-between items-end">
                   <h3 className="text-lg font-semibold text-gray-800">{booking.guest_name}</h3>
                   <p className="text-xl font-bold text-[#FF385C]">{formatAmount(booking.amount)}</p>
-                </div>
+                  
+                </div><div className="flex flex-col items-end">
+                  
+                  <span className={`text-xs px-2 py-0.5 rounded-full ${
+                booking.source === "Airbnb"
+                  ? "bg-pink-100 text-pink-600 border border-pink-200"
+                  : booking.source === "Direkt"
+                    ? "bg-green-100 text-green-600 border border-green-200"
+                    : booking.source === "Booking"
+                      ? "bg-blue-100 text-blue-600 border border-blue-200"
+                      : "bg-gray-100 text-gray-600 border border-gray-200" // default fallback
+              }`}>{booking.source}</span></div>
                 {expandedBookingId === booking.id && (
                   <div className="flex-1 space-y-3">
                     {booking.notes && <p className="text-gray-600 text-sm italic">{booking.notes}</p>}
                     <dl className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">
-                      <div className="border-t border-gray-200 pt-4">
-                        <div className="flex justify-between items-center">
-                          <span className="text-sm font-medium text-gray-500">Burimi</span>
-                          <span className="text-sm text-gray-900">{booking.source}</span>
-                        </div>
-                      </div>
+                      
                       <div className="border-t border-gray-200 pt-4">
                         <div className="flex justify-between items-center">
                           <dt className="text-gray-500">Phone</dt>
