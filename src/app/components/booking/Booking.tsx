@@ -5,6 +5,8 @@ import { supabase } from '../../../utils/supabaseClient';
 import Modal from '../Modal';
 import BookingForm from '../booking/BookingForm';
 import BookingInvoice from './BookingInvoice';
+import { FiArrowUp, FiArrowDown } from 'react-icons/fi';
+
 
 export interface Booking {
   id: string;
@@ -256,7 +258,15 @@ const Booking = () => {
                 <svg className="absolute left-2 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                 </svg>
-              </div>
+                
+              </div><button
+            onClick={() => handleSort('date')}
+            className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${
+              sortBy === 'date' ? 'bg-[#FF385C] text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+            }`}
+          >
+             {sortBy === 'date' && (sortOrder === 'asc' ? <FiArrowUp className="inline ml-1" /> : <FiArrowDown className="inline ml-1" />)}
+          </button>
             </div>
             
             
